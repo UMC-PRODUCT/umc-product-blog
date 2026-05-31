@@ -1,0 +1,95 @@
+---
+import type { MarkdownHeading } from "astro";
+
+type Props = {
+  headings: MarkdownHeading[];
+};
+
+const { headings } = Astro.props;
+const visibleHeadings = headings.filter((heading) => {
+  return heading.depth >= 1 && heading.depth <= 3 && heading.slug && heading.text.trim();
+});
+---
+
+{
+  visibleHeadings.length > 0 && (
+    <aside
+      class="sticky top-24 grid max-h-[calc(100vh-8rem)] gap-[0.9rem] overflow-auto border-l border-ds-divider pl-4 max-[1040px]:static max-[1040px]:order-[-1] max-[1040px]:max-h-none max-[1040px]:overflow-visible max-[1040px]:border-l-0 max-[1040px]:border-b max-[1040px]:pb-6 max-[1040px]:pl-0"
+      aria-label="본문 목차"
+      data-content-toc
+    >
+      <p class="m-0 text-label-3 uppercase text-ds-primary">Contents</p>
+      <ol class="m-0 grid list-none gap-2 p-0">
+        {visibleHeadings.map((heading) => (
+          <li
+            class:list={[
+              "m-0",
+              heading.depth === 2 && "pl-3",
+              heading.depth >= 3 && "pl-6",
+            ]}
+          >
+            <a
+              class="text-caption-1-medium inline-flex text-ds-text-muted transition-colors hover:text-ds-primary-strong"
+              href={`#${heading.slug}`}
+              data-heading-id={heading.slug}
+            >
+              {heading.text}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </aside>
+  )
+}
+
+<script>
+  import { selectActiveHeadingId, type TocHeadingCandidate } from "@/lib/toc";
+
+  for (const toc of document.querySelectorAll<HTMLElement>("[data-content-toc]")) {
+    const links = Array.from(toc.querySelectorAll<HTMLAnchorElement>("[data-heading-id]"));
+    const candidates = new Map<string, TocHeadingCandidate>();
+
+    function setActive(id: string | undefined): void {
+      for (const link of links) {
+        const isActive = link.dataset.headingId === id;
+        if (isActive) {
+          link.setAttribute("aria-current", "true");
+        } else {
+          link.removeAttribute("aria-current");
+        }
+        link.classList.toggle("text-ds-primary-strong", isActive);
+        link.classList.toggle("font-semibold", isActive);
+      }
+    }
+
+    if (!("IntersectionObserver" in window)) {
+      continue;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const id = (entry.target as HTMLElement).id;
+          candidates.set(id, {
+            id,
+            top: entry.boundingClientRect.top,
+            isIntersecting: entry.isIntersecting,
+          });
+        }
+
+        setActive(selectActiveHeadingId([...candidates.values()]));
+      },
+      {
+        rootMargin: "-96px 0px -65% 0px",
+        threshold: [0, 1],
+      },
+    );
+
+    for (const link of links) {
+      const heading = document.getElementById(link.dataset.headingId ?? "");
+      if (heading) {
+        observer.observe(heading);
+      }
+    }
+  }
+</script>

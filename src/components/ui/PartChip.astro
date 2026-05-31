@@ -1,0 +1,13 @@
+---
+import { getPartLabel } from "@/lib/taxonomy";
+
+type Props = {
+  part: string;
+};
+
+const { part } = Astro.props;
+---
+
+<span class="inline-flex min-h-6 items-center whitespace-nowrap rounded-[8px] bg-ds-primary-soft px-2.5 py-0.5 text-label-3 text-ds-primary-strong">
+  {getPartLabel(part)}
+</span>

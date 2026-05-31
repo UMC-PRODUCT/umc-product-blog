@@ -1,0 +1,36 @@
+---
+type Generation = {
+  id: string;
+  data: {
+    label: string;
+  };
+};
+
+type Props = {
+  generations: Generation[];
+  currentId?: string;
+  hrefBase?: string;
+  hrefSuffix?: string;
+};
+
+const { generations, currentId, hrefBase = "/members", hrefSuffix = "" } = Astro.props;
+---
+
+<nav class="mb-6 flex flex-wrap items-center gap-2 border-b border-ds-divider" aria-label="기수별 구성원">
+  {
+    generations.map((generation) => (
+      <a
+        class:list={[
+          "inline-flex min-h-12 items-center border-b-2 px-0.5 text-label-1",
+          currentId === generation.id
+            ? "border-ds-primary text-ds-text-strong"
+            : "border-transparent text-ds-text-caption",
+        ]}
+        href={`${hrefBase}/${generation.id}${hrefSuffix}`}
+        aria-current={currentId === generation.id ? "page" : undefined}
+      >
+        {generation.data.label}
+      </a>
+    ))
+  }
+</nav>

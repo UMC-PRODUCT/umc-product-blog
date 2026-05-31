@@ -1,0 +1,218 @@
+---
+import AuthCircleButton from "./AuthCircleButton.astro";
+import AuthDivider from "./AuthDivider.astro";
+import AuthAccountRecoveryLink from "./AuthAccountRecoveryLink.astro";
+import AuthLogoButton from "./AuthLogoButton.astro";
+
+type Props = {
+  variant?: "page" | "modal";
+};
+
+const { variant = "page" } = Astro.props;
+const isModal = variant === "modal";
+---
+
+<section
+  class:list={[
+    "w-full",
+    isModal ? "grid place-items-center" : "flex min-h-screen min-w-[360px] items-center justify-center bg-teal-gray-50",
+  ]}
+  data-login-local
+  data-login-variant={variant}
+>
+  <div class:list={["flex w-full max-w-[360px] flex-col items-center", isModal ? "gap-9" : "gap-10"]}>
+    <AuthLogoButton />
+
+    <div class:list={["flex w-full flex-col items-center", isModal ? "gap-[18px]" : "gap-[26px]"]}>
+      <form class="flex w-full flex-col items-center gap-4" data-login-form>
+        <div class="flex w-full flex-col gap-3">
+          <input
+            class="text-label-1-medium w-full rounded-[12px] border border-teal-gray-300 bg-white py-3 pr-2.5 pl-4 text-teal-gray-700 shadow-[inset_1px_1px_2px_0_rgba(211,216,216,0.2)] outline-none placeholder:text-teal-gray-400 focus:border-teal-400 focus:bg-teal-50 focus:text-teal-600"
+            data-login-email
+            type="email"
+            autocomplete="email"
+            placeholder="이메일"
+            required
+          />
+          <input
+            class="text-label-1-medium w-full rounded-[12px] border border-teal-gray-300 bg-white py-3 pr-2.5 pl-4 text-teal-gray-700 shadow-[inset_1px_1px_2px_0_rgba(211,216,216,0.2)] outline-none placeholder:text-teal-gray-400 focus:border-teal-400 focus:bg-teal-50 focus:text-teal-600"
+            data-login-password
+            type="password"
+            autocomplete="current-password"
+            placeholder="Password"
+            required
+          />
+          <label class="flex items-center gap-2">
+            <input class="peer sr-only" data-login-keep type="checkbox" aria-label="로그인 유지" />
+            <span class="inline-flex size-4 rounded-[5px] border border-teal-gray-300 bg-white peer-checked:border-teal-500 peer-checked:bg-teal-500 peer-checked:shadow-[inset_0_0_0_3px_white]" aria-hidden="true"></span>
+            <span class="text-label-1-medium text-teal-gray-500">로그인 유지</span>
+          </label>
+        </div>
+
+        <div class="flex w-full flex-col gap-2">
+          <p class="text-body-2-medium h-[22px] text-center text-error-500" data-login-error></p>
+          <button
+            class="text-label-1-medium inline-flex h-12 min-h-12 w-full items-center justify-center rounded-[10px] bg-teal-600 px-4 text-white transition-colors hover:bg-teal-700 disabled:bg-teal-300 disabled:text-teal-gray-50"
+            data-login-submit
+            type="submit"
+          >
+            로그인
+          </button>
+        </div>
+      </form>
+
+      <div class="flex h-7 items-center gap-3">
+        <AuthAccountRecoveryLink />
+      </div>
+
+      <div class="flex flex-col items-center gap-4">
+        <AuthDivider />
+
+        <div class="flex items-center gap-8">
+          <AuthCircleButton social="kakao" label="카카오 로그인" />
+          <AuthCircleButton social="apple" label="Apple 로그인" />
+          <AuthCircleButton social="google" label="Google 로그인" />
+        </div>
+      </div>
+    </div>
+
+    <p
+      class:list={[
+        "text-body-2-regular min-h-[22px] text-center text-teal-gray-500",
+        isModal && "hidden",
+      ]}
+      data-login-status
+      role="status"
+    ></p>
+  </div>
+</section>
+
+<script>
+  import { loginWithEmail } from "@/lib/auth/api";
+  import {
+    completeAuthResult,
+    isApplePopupCancelled,
+    isGooglePopupCancelled,
+    loginWithApplePopup,
+    loginWithGooglePopup,
+    startKakaoSignIn,
+  } from "@/lib/auth/oauth";
+  import { getCurrentRedirectTarget, getRedirectParam, readAuthSession } from "@/lib/auth/session";
+  import { showToast } from "@/lib/ui/toast";
+
+  function readStatusVariant(message: string): "default" | "error" {
+    return /실패|오류|지원되지|올바르지/.test(message) ? "error" : "default";
+  }
+
+  function setStatus(root: HTMLElement, message: string): void {
+    const status = root.querySelector<HTMLElement>("[data-login-status]");
+    if (status) {
+      status.textContent = "";
+      if (readMode(root) === "modal") {
+        status.classList.add("hidden");
+      }
+    }
+    if (message) showToast({ message, variant: readStatusVariant(message) });
+  }
+
+  function setError(root: HTMLElement, message: string): void {
+    const error = root.querySelector<HTMLElement>("[data-login-error]");
+    if (error) error.textContent = "";
+    if (message) showToast({ message, variant: "error" });
+  }
+
+  function readMode(root: HTMLElement): "page" | "modal" {
+    return root.dataset.loginVariant === "modal" ? "modal" : "page";
+  }
+
+  function readRedirect(): string {
+    return getRedirectParam(getCurrentRedirectTarget());
+  }
+
+  async function runOAuth(root: HTMLElement, action: () => Promise<"LOGIN_SUCCESS" | "REGISTER_REQUIRED" | null>): Promise<void> {
+    setStatus(root, "처리 중입니다...");
+    try {
+      const result = await action();
+      if (!result) {
+        setStatus(root, "");
+        return;
+      }
+      completeAuthResult(result, {
+        mode: readMode(root),
+        redirect: readRedirect(),
+      });
+    } catch (error) {
+      setStatus(root, error instanceof Error ? error.message : "로그인 중 오류가 발생했습니다.");
+    }
+  }
+
+  for (const root of document.querySelectorAll<HTMLElement>("[data-login-local]")) {
+    const mode = readMode(root);
+    const form = root.querySelector<HTMLFormElement>("[data-login-form]");
+    const emailInput = root.querySelector<HTMLInputElement>("[data-login-email]");
+    const passwordInput = root.querySelector<HTMLInputElement>("[data-login-password]");
+    const submitButton = root.querySelector<HTMLButtonElement>("[data-login-submit]");
+
+    if (mode === "page" && readAuthSession()) {
+      window.location.href = readRedirect();
+    }
+
+    form?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!emailInput?.value.trim() || !passwordInput?.value || submitButton?.disabled) return;
+
+      submitButton!.disabled = true;
+      setError(root, "");
+      setStatus(root, "처리 중입니다...");
+
+      void loginWithEmail({
+        email: emailInput.value.trim(),
+        password: passwordInput.value,
+        clientType: "WEB",
+      })
+        .then(() => {
+          completeAuthResult("LOGIN_SUCCESS", {
+            mode,
+            redirect: readRedirect(),
+          });
+        })
+        .catch(() => {
+          setStatus(root, "");
+          setError(root, "이메일 또는 비밀번호가 올바르지 않습니다.");
+        })
+        .finally(() => {
+          submitButton!.disabled = false;
+        });
+    });
+
+    root.querySelector<HTMLButtonElement>("[data-login-kakao]")?.addEventListener("click", () => {
+      try {
+        startKakaoSignIn(readRedirect());
+      } catch (error) {
+        setStatus(root, error instanceof Error ? error.message : "Kakao 로그인에 실패했습니다.");
+      }
+    });
+
+    root.querySelector<HTMLButtonElement>("[data-login-google]")?.addEventListener("click", () => {
+      void runOAuth(root, async () => {
+        try {
+          return await loginWithGooglePopup();
+        } catch (error) {
+          if (isGooglePopupCancelled(error)) return null;
+          throw error;
+        }
+      });
+    });
+
+    root.querySelector<HTMLButtonElement>("[data-login-apple]")?.addEventListener("click", () => {
+      void runOAuth(root, async () => {
+        try {
+          return await loginWithApplePopup();
+        } catch (error) {
+          if (isApplePopupCancelled(error)) return null;
+          throw error;
+        }
+      });
+    });
+  }
+</script>

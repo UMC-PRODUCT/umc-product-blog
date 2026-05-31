@@ -1,0 +1,31 @@
+---
+import { getCollection } from "astro:content";
+import Container from "@/components/ui/Container.astro";
+import EmptyState from "@/components/ui/EmptyState.astro";
+import SectionHeader from "@/components/ui/SectionHeader.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { selectDefaultGeneration } from "@/lib/content";
+
+const generations = (await getCollection("generations")).sort(
+  (left, right) => right.data.order - left.data.order,
+);
+const defaultGeneration = selectDefaultGeneration(generations);
+
+if (defaultGeneration) {
+  return Astro.redirect(`/about/${defaultGeneration.id}#members`, 301);
+}
+---
+
+<BaseLayout title="Members" description="UMC PRODUCT 기수별 구성원 소개입니다.">
+  <Container class="py-14 max-[760px]:py-10">
+    <SectionHeader
+      eyebrow="Members"
+      title="프로덕트팀 소개"
+      description="열정 가득한 프로덕트팀 구성원을 소개합니다."
+    />
+    <EmptyState
+      title="구성원 정보를 준비 중입니다"
+      description="기수 정보가 추가되면 이 페이지에서 기수별 조직도와 구성원을 확인할 수 있습니다."
+    />
+  </Container>
+</BaseLayout>

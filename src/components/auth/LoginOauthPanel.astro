@@ -1,0 +1,177 @@
+---
+import AuthDivider from "./AuthDivider.astro";
+import AuthAccountRecoveryLink from "./AuthAccountRecoveryLink.astro";
+import AuthLogoButton from "./AuthLogoButton.astro";
+import AuthSocialButton from "./AuthSocialButton.astro";
+
+type Props = {
+  variant?: "page" | "modal";
+};
+
+const { variant = "page" } = Astro.props;
+const isModal = variant === "modal";
+---
+
+<section
+  class:list={[
+    "w-full",
+    isModal ? "grid place-items-center" : "flex min-h-screen min-w-[360px] items-center justify-center bg-teal-gray-50",
+  ]}
+  data-login-oauth
+  data-login-variant={variant}
+>
+  <div class:list={["flex w-full max-w-[360px] flex-col items-center", isModal ? "gap-9" : "gap-16 pb-[26px]"]}>
+    <AuthLogoButton />
+
+    <div class:list={["flex w-full flex-col items-center", isModal ? "gap-5" : "gap-4"]}>
+      <div class="flex w-full flex-col items-center gap-3">
+        <AuthSocialButton social="google" label="Google 로그인" />
+        <AuthSocialButton social="kakao" label="카카오 로그인" />
+        <AuthSocialButton social="apple" label="Apple 로그인" appearance="black" />
+        <AuthSocialButton social="github" label="Github 로그인" hidden={true} />
+      </div>
+
+      <AuthDivider />
+
+      <div class:list={["flex w-full flex-col items-center", isModal ? "gap-[18px]" : "gap-3.5"]}>
+        {
+          isModal ? (
+            <button
+              class="text-label-1-medium flex h-12 min-h-12 w-full max-w-[360px] items-center justify-center rounded-[10px] bg-teal-100 px-4 py-1 text-teal-600 transition-colors hover:bg-teal-200"
+              data-login-switch-view="local"
+              type="button"
+            >
+              UMC 계정 로그인
+            </button>
+          ) : (
+            <a
+              class="text-label-1-medium flex h-12 min-h-12 w-full max-w-[360px] items-center justify-center rounded-[10px] bg-teal-100 px-4 py-1 text-teal-600 transition-colors hover:bg-teal-200"
+              data-login-local-link
+              href="/login/local"
+            >
+              UMC 계정 로그인
+            </a>
+          )
+        }
+
+        <div class="flex h-7 items-center justify-center gap-3">
+          <AuthAccountRecoveryLink />
+        </div>
+      </div>
+    </div>
+
+    <p
+      class:list={[
+        "text-body-2-regular min-h-[22px] text-center text-teal-gray-500",
+        isModal && "hidden",
+      ]}
+      data-login-status
+      role="status"
+    ></p>
+  </div>
+</section>
+
+<script>
+  import {
+    completeAuthResult,
+    isApplePopupCancelled,
+    isGooglePopupCancelled,
+    loginWithApplePopup,
+    loginWithGooglePopup,
+    startKakaoSignIn,
+  } from "@/lib/auth/oauth";
+  import { buildLoginLocalPath, getCurrentRedirectTarget, getRedirectParam, readAuthSession } from "@/lib/auth/session";
+  import { showToast } from "@/lib/ui/toast";
+
+  function readStatusVariant(message: string): "default" | "error" {
+    return /실패|오류|지원되지|올바르지/.test(message) ? "error" : "default";
+  }
+
+  function setStatus(root: HTMLElement, message: string): void {
+    const status = root.querySelector<HTMLElement>("[data-login-status]");
+    if (status) {
+      status.textContent = "";
+      if (readMode(root) === "modal") {
+        status.classList.add("hidden");
+      }
+    }
+    if (message) showToast({ message, variant: readStatusVariant(message) });
+  }
+
+  function readMode(root: HTMLElement): "page" | "modal" {
+    return root.dataset.loginVariant === "modal" ? "modal" : "page";
+  }
+
+  function readRedirect(): string {
+    return getRedirectParam(getCurrentRedirectTarget());
+  }
+
+  async function runOAuth(root: HTMLElement, action: () => Promise<"LOGIN_SUCCESS" | "REGISTER_REQUIRED" | null>): Promise<void> {
+    setStatus(root, "처리 중입니다...");
+    try {
+      const result = await action();
+      if (!result) {
+        setStatus(root, "");
+        return;
+      }
+      completeAuthResult(result, {
+        mode: readMode(root),
+        redirect: readRedirect(),
+      });
+    } catch (error) {
+      setStatus(root, error instanceof Error ? error.message : "로그인 중 오류가 발생했습니다.");
+    }
+  }
+
+  for (const root of document.querySelectorAll<HTMLElement>("[data-login-oauth]")) {
+    const mode = readMode(root);
+    const localLink = root.querySelector<HTMLAnchorElement>("[data-login-local-link]");
+    const localSwitch = root.querySelector<HTMLButtonElement>("[data-login-switch-view='local']");
+
+    if (mode === "page" && readAuthSession()) {
+      window.location.href = readRedirect();
+    }
+
+    if (localLink) {
+      localLink.href = buildLoginLocalPath(readRedirect());
+    }
+
+    localSwitch?.addEventListener("click", () => {
+      window.dispatchEvent(new CustomEvent("umc-login-modal-view", { detail: { view: "local" } }));
+    });
+
+    root.querySelector<HTMLButtonElement>("[data-login-kakao]")?.addEventListener("click", () => {
+      try {
+        startKakaoSignIn(readRedirect());
+      } catch (error) {
+        setStatus(root, error instanceof Error ? error.message : "Kakao 로그인에 실패했습니다.");
+      }
+    });
+
+    root.querySelector<HTMLButtonElement>("[data-login-github]")?.addEventListener("click", () => {
+      setStatus(root, "Github 로그인은 아직 지원되지 않습니다.");
+    });
+
+    root.querySelector<HTMLButtonElement>("[data-login-google]")?.addEventListener("click", () => {
+      void runOAuth(root, async () => {
+        try {
+          return await loginWithGooglePopup();
+        } catch (error) {
+          if (isGooglePopupCancelled(error)) return null;
+          throw error;
+        }
+      });
+    });
+
+    root.querySelector<HTMLButtonElement>("[data-login-apple]")?.addEventListener("click", () => {
+      void runOAuth(root, async () => {
+        try {
+          return await loginWithApplePopup();
+        } catch (error) {
+          if (isApplePopupCancelled(error)) return null;
+          throw error;
+        }
+      });
+    });
+  }
+</script>

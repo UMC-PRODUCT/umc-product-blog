@@ -1,0 +1,31 @@
+---
+import { getCollection } from "astro:content";
+import PartTabs from "@/components/blog/PartTabs.astro";
+import PostList from "@/components/blog/PostList.astro";
+import Container from "@/components/ui/Container.astro";
+import SectionHeader from "@/components/ui/SectionHeader.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { filterPublished, sortByDateDesc } from "@/lib/content";
+
+const members = await getCollection("members");
+const posts = sortByDateDesc(filterPublished(await getCollection("blog")), "publishedAt");
+---
+
+<BaseLayout title="Tech Blog" description="UMC PRODUCT 기술 블로그 목록입니다.">
+  <Container class="py-20 max-[760px]:py-12">
+    <SectionHeader
+      eyebrow="Tech Blog"
+      title="기술 블로그"
+      description="프로덕트팀에서 하는 고민과 그 결정들을 공유합니다."
+    />
+
+    <PartTabs />
+
+    <PostList
+      posts={posts}
+      members={members}
+      emptyTitle="앗! 아직 준비 중이에요."
+      emptyDescription="우리의 고민과 결정들을 녹여내고 있어요. 조금만 기다려 주세요."
+    />
+  </Container>
+</BaseLayout>

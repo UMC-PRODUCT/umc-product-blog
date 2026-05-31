@@ -1,0 +1,65 @@
+---
+import SiteFooter from "@/components/layout/SiteFooter.astro";
+import SiteHeader from "@/components/layout/SiteHeader.astro";
+import "@/styles/global.css";
+import faviconUrl from "../assets/favico.svg?url";
+import ogImageUrl from "../assets/og-image.webp?url";
+
+type Props = {
+  title?: string;
+  description?: string;
+  hideChrome?: boolean;
+};
+
+const {
+  title = "UMC PRODUCT",
+  description = "프로덕트팀 공식 블로그",
+  hideChrome = false,
+} = Astro.props;
+
+const pageTitle = title === "UMC PRODUCT" ? title : `${title} | UMC PRODUCT`;
+const siteUrl = Astro.site ?? new URL("https://tech.university.neordinary.com");
+const pageUrl = Astro.url.href;
+const imageUrl = new URL(ogImageUrl, siteUrl).toString();
+---
+
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href={faviconUrl} />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link
+      rel="stylesheet"
+      as="style"
+      crossorigin
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+    />
+    <title>{pageTitle}</title>
+
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content={pageUrl} />
+    <meta property="og:image" content={imageUrl} />
+    <script
+      is:inline
+      src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"
+      async
+      defer
+    ></script>
+    <script is:inline src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"></script>
+    <script is:inline src="https://accounts.google.com/gsi/client" async defer></script>
+  </head>
+  <body>
+    <div class="flex min-h-screen flex-col">
+      {!hideChrome && <SiteHeader currentPath={Astro.url.pathname} />}
+      <main class="flex-1 bg-ds-surface">
+        <slot />
+      </main>
+      {!hideChrome && <SiteFooter />}
+    </div>
+  </body>
+</html>

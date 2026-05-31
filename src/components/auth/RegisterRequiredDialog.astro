@@ -1,0 +1,37 @@
+---
+import ActionModal from "@/components/ui/ActionModal.astro";
+import { REGISTER_REQUIRED_CLOSE_ATTRS, REGISTER_REQUIRED_NOTICE } from "@/lib/auth/registerRequiredNotice";
+---
+
+<ActionModal
+  dataAttribute="data-register-required-dialog"
+  size="medium"
+  {...REGISTER_REQUIRED_NOTICE}
+  secondaryAttrs={REGISTER_REQUIRED_CLOSE_ATTRS}
+/>
+
+<script>
+  import { AUTH_REGISTER_REQUIRED_EVENT } from "@/lib/auth/oauth";
+
+  function openDialog(root: HTMLElement): void {
+    root.classList.remove("hidden");
+    root.querySelector<HTMLElement>("a, button")?.focus();
+  }
+
+  function closeDialog(root: HTMLElement): void {
+    root.classList.add("hidden");
+  }
+
+  for (const root of document.querySelectorAll<HTMLElement>("[data-register-required-dialog]")) {
+    root.querySelector<HTMLButtonElement>("[data-register-required-close]")?.addEventListener("click", () => closeDialog(root));
+    root.addEventListener("click", (event) => {
+      if (event.target === root) closeDialog(root);
+    });
+
+    window.addEventListener(AUTH_REGISTER_REQUIRED_EVENT, () => openDialog(root));
+
+    if (new URLSearchParams(window.location.search).get("registerRequired") === "1") {
+      openDialog(root);
+    }
+  }
+</script>

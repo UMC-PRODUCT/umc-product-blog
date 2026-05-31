@@ -1,0 +1,73 @@
+---
+import LoginLocalPanel from "./LoginLocalPanel.astro";
+import LoginOauthPanel from "./LoginOauthPanel.astro";
+import AuthRegisterNotice from "./AuthRegisterNotice.astro";
+---
+
+<div class="fixed inset-0 z-[80] grid hidden place-items-center bg-[rgba(22,25,25,0.42)] px-5 py-8" data-login-modal>
+  <section
+    class="relative w-full max-w-[420px] rounded-2xl border border-teal-gray-200 bg-white px-10 py-10 max-[520px]:px-5 max-[520px]:py-7"
+    role="dialog"
+    aria-modal="true"
+    aria-label="로그인"
+    data-login-modal-dialog
+  >
+    <div data-login-modal-panel="oauth">
+      <LoginOauthPanel variant="modal" />
+    </div>
+    <div class="hidden" data-login-modal-panel="local">
+      <LoginLocalPanel variant="modal" />
+    </div>
+    <div class="hidden" data-login-modal-panel="register">
+      <AuthRegisterNotice />
+    </div>
+  </section>
+</div>
+
+<script>
+  import { AUTH_MODAL_SUCCESS_EVENT, AUTH_REGISTER_REQUIRED_EVENT } from "@/lib/auth/oauth";
+
+  type LoginModalView = "oauth" | "local" | "register";
+
+  function showView(root: HTMLElement, view: LoginModalView): void {
+    for (const panel of root.querySelectorAll<HTMLElement>("[data-login-modal-panel]")) {
+      panel.classList.toggle("hidden", panel.dataset.loginModalPanel !== view);
+    }
+    const dialog = root.querySelector<HTMLElement>("[data-login-modal-dialog]");
+    dialog?.classList.toggle("max-w-[420px]", view !== "register");
+    dialog?.classList.toggle("max-w-[480px]", view === "register");
+    dialog?.classList.toggle("rounded-[24px]", view === "register");
+    dialog?.classList.toggle("border", view !== "register");
+    dialog?.classList.toggle("px-6", view === "register");
+    dialog?.classList.toggle("px-10", view !== "register");
+    dialog?.classList.toggle("py-5", view === "register");
+    dialog?.classList.toggle("py-10", view !== "register");
+  }
+
+  function openModal(root: HTMLElement, view: LoginModalView = "oauth"): void {
+    showView(root, view);
+    root.classList.remove("hidden");
+    root.querySelector<HTMLElement>("button, a, input")?.focus();
+  }
+
+  function closeModal(root: HTMLElement): void {
+    root.classList.add("hidden");
+    showView(root, "oauth");
+  }
+
+  for (const root of document.querySelectorAll<HTMLElement>("[data-login-modal]")) {
+    root.addEventListener("click", (event) => {
+      if (event.target === root) closeModal(root);
+    });
+
+    window.addEventListener("umc-open-login-modal", () => openModal(root, "oauth"));
+    window.addEventListener("umc-login-modal-view", (event) => {
+      const view = (event as CustomEvent<{ view?: LoginModalView }>).detail?.view;
+      if (view === "oauth" || view === "local" || view === "register") {
+        openModal(root, view);
+      }
+    });
+    window.addEventListener(AUTH_REGISTER_REQUIRED_EVENT, () => openModal(root, "register"));
+    window.addEventListener(AUTH_MODAL_SUCCESS_EVENT, () => closeModal(root));
+  }
+</script>

@@ -1,0 +1,20 @@
+{
+  "name": "양혜원",
+  "nickname": "주디",
+  "school": "가천대학교",
+  "profileImageId": "joody-yang",
+  "profileImageExtension": "webp",
+  "profileEmoji": "🐰",
+  "bio": "",
+  "parts": [
+    "web"
+  ],
+  "participations": [
+    {
+      "generation": "2nd",
+      "role": "Member",
+      "team": "Web",
+      "order": 25
+    }
+  ]
+}

@@ -1,0 +1,95 @@
+---
+import { getCollection, render } from "astro:content";
+import AuthorMetaChips from "@/components/blog/AuthorMetaChips.astro";
+import CommentsPanel from "@/components/content/CommentsPanel.astro";
+import ContentLike from "@/components/content/ContentLike.astro";
+import ContentShare from "@/components/content/ContentShare.astro";
+import ContentToc from "@/components/content/ContentToc.astro";
+import SeriesNav from "@/components/content/SeriesNav.astro";
+import Container from "@/components/ui/Container.astro";
+import PartChip from "@/components/ui/PartChip.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { filterPublished, getSeriesPath, resolveAuthors, resolvePostSeries } from "@/lib/content";
+import { formatDate } from "@/lib/format";
+
+export async function getStaticPaths() {
+  const posts = filterPublished(await getCollection("blog"));
+
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const members = await getCollection("members");
+const authors = resolveAuthors(post, members);
+const allPosts = filterPublished(await getCollection("blog"));
+const seriesEntries = await getCollection("series");
+const postSeries = resolvePostSeries(post, allPosts, seriesEntries);
+const { Content, headings } = await render(post);
+const tocHeadings = headings.filter((heading) => {
+  return heading.depth >= 1 && heading.depth <= 3 && heading.slug !== "footnote-label";
+});
+const hasToc = tocHeadings.length > 0;
+---
+
+<BaseLayout title={post.data.title} description={post.data.description}>
+  <Container class="py-20 max-[760px]:py-12">
+    <header class="mx-auto grid max-w-[1040px] px-8 pb-8 max-[1040px]:max-w-[760px] max-[760px]:px-2 max-[640px]:pb-6">
+      <div class="grid max-w-[760px] gap-4">
+        <div class="flex flex-wrap items-center gap-2">
+          {post.data.parts.map((part) => <PartChip part={part} />)}
+          <AuthorMetaChips authors={authors} />
+        </div>
+        <h1 class="m-0 text-display-1 text-ds-text-strong break-keep">{post.data.title}</h1>
+        <p class="m-0 max-w-[720px] text-subtitle-2 text-ds-text-muted break-keep">{post.data.description}</p>
+        <div class="flex flex-wrap items-center justify-between gap-3 border-t border-ds-divider pt-4 text-body-2 text-ds-text-caption">
+          <time datetime={post.data.publishedAt.toISOString()}>{formatDate(post.data.publishedAt)}</time>
+          <ContentLike type="blog" slug={post.id} />
+        </div>
+      </div>
+    </header>
+
+    <div
+      class:list={[
+        "mx-auto grid items-start px-8 max-[760px]:px-2",
+        hasToc
+          ? "max-w-[1040px] grid-cols-[minmax(0,760px)_minmax(152px,1fr)] gap-16 max-[1040px]:max-w-[760px] max-[1040px]:grid-cols-1 max-[1040px]:gap-8"
+          : "max-w-[760px] grid-cols-[minmax(0,760px)]",
+      ]}
+    >
+      <div class="grid min-w-0 max-w-[760px] gap-10">
+        {
+          postSeries && (
+            <SeriesNav
+              title={postSeries.series.data.title}
+              href={getSeriesPath(postSeries.series.id)}
+              posts={postSeries.posts.map((seriesPost) => ({
+                href: `/blog/${seriesPost.id}`,
+                title: seriesPost.data.title,
+                current: seriesPost.id === post.id,
+              }))}
+              previous={postSeries.previous ? {
+                href: `/blog/${postSeries.previous.id}`,
+                title: postSeries.previous.data.title,
+              } : undefined}
+              next={postSeries.next ? {
+                href: `/blog/${postSeries.next.id}`,
+                title: postSeries.next.data.title,
+              } : undefined}
+            />
+          )
+        }
+        <article class="prose">
+          <Content />
+        </article>
+
+        <ContentShare title={post.data.title} description={post.data.description} />
+        <CommentsPanel type="blog" slug={post.id} />
+
+      </div>
+      <ContentToc headings={tocHeadings} />
+    </div>
+  </Container>
+</BaseLayout>

@@ -1,0 +1,42 @@
+---
+type HeaderActionButtonVariant = "primary" | "secondary";
+
+type Props = {
+  href?: string;
+  label: string;
+  variant?: HeaderActionButtonVariant;
+  type?: "button" | "submit" | "reset";
+  [key: string]: unknown;
+};
+
+const {
+  href,
+  label,
+  variant = "primary",
+  type = "button",
+  class: className = "",
+  ...attrs
+} = Astro.props;
+
+const baseClass =
+  "text-label-1-semibold inline-flex h-[38px] items-center justify-center rounded-[10px] px-4 transition-colors";
+
+const variantClassByVariant: Record<HeaderActionButtonVariant, string> = {
+  primary: "bg-ds-primary text-white hover:bg-ds-primary-strong",
+  secondary: "bg-teal-gray-100 text-teal-gray-700 hover:bg-teal-gray-150",
+};
+
+const mergedClassName = `${baseClass} ${variantClassByVariant[variant]} ${className}`;
+---
+
+{
+  href ? (
+    <a class={mergedClassName} href={href} {...attrs}>
+      <slot>{label}</slot>
+    </a>
+  ) : (
+    <button class={mergedClassName} type={type} {...attrs}>
+      <slot>{label}</slot>
+    </button>
+  )
+}

@@ -1,0 +1,51 @@
+---
+import PartChip from "@/components/ui/PartChip.astro";
+import { formatDate } from "@/lib/format";
+import AuthorMetaChips from "./AuthorMetaChips.astro";
+
+type Post = {
+  id: string;
+  data: {
+    title: string;
+    description: string;
+    publishedAt: Date;
+    tags: string[];
+    parts: string[];
+  };
+};
+
+type Author = {
+  id: string;
+  data: {
+    name: string;
+    nickname?: string;
+    profileImage?: string;
+    profileImageId?: string;
+    profileImageExtension?: string;
+  };
+};
+
+type Props = {
+  post: Post;
+  authors?: Author[];
+};
+
+const { post, authors = [] } = Astro.props;
+---
+
+<article class="group grid gap-4 border-b border-ds-divider py-9">
+  <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+    <div class="flex flex-wrap items-center gap-2" aria-label="작성 파트">
+      {post.data.parts.map((part) => <PartChip part={part} />)}
+      <AuthorMetaChips authors={authors} />
+    </div>
+    <time class="text-caption-1 text-ds-text-caption" datetime={post.data.publishedAt.toISOString()}>
+      {formatDate(post.data.publishedAt)}
+    </time>
+  </div>
+
+  <h2 class="m-0 max-w-[760px] text-heading-6 font-semibold text-ds-text-strong break-keep">
+    <a class="transition-colors group-hover:text-ds-primary" href={`/blog/${post.id}`}>{post.data.title}</a>
+  </h2>
+  <p class="m-0 max-w-[680px] text-body-1 font-normal text-ds-text-default break-keep">{post.data.description}</p>
+</article>

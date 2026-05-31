@@ -1,0 +1,66 @@
+---
+import { getInitials, getMemberProfileImageUrl } from "@/lib/format";
+import type { MemberParticipation } from "@/lib/content";
+
+type Member = {
+  id: string;
+  data: {
+    name: string;
+    nickname: string;
+    school: string;
+    profileImage?: string;
+    profileImageId?: string;
+    profileImageExtension?: string;
+    profileEmoji?: string;
+    bio: string;
+    parts: string[];
+  };
+};
+
+type Props = {
+  member: Member;
+  participation: MemberParticipation;
+};
+
+const { member, participation } = Astro.props;
+const profileImageUrl = getMemberProfileImageUrl(member.data);
+---
+
+<article
+  class="grid h-full min-h-[132px] grid-cols-[minmax(0,1fr)_80px] items-center gap-4 rounded-lg border border-ds-divider bg-ds-surface p-3 transition-colors hover:border-ds-primary-soft hover:bg-ds-hover max-[420px]:grid-cols-[minmax(0,1fr)_64px] max-[360px]:grid-cols-[minmax(0,1fr)_56px] max-[360px]:gap-3"
+>
+  <div class="grid min-w-0 gap-2.5">
+    <div class="grid gap-0.5">
+      <span class="text-label-3 uppercase text-ds-text-caption">{participation.team}</span>
+      <strong class="text-label-1 text-ds-primary-strong">
+        {participation.role}
+      </strong>
+    </div>
+
+    <div class="grid min-w-0 gap-1">
+      <h3 class="m-0 flex min-w-0 flex-wrap items-baseline gap-x-1 gap-y-0.5 text-label-1 break-keep">
+        <span class="text-ds-text-strong">{member.data.nickname}</span>
+        <span class="shrink-0 text-ds-text-strong" aria-hidden="true">/</span>
+        <span class="text-ds-text-strong">{member.data.name}</span>
+      </h3>
+      <p class="m-0 text-body-2 text-ds-text-caption max-[760px]:text-caption-1">
+        {member.data.school}
+      </p>
+    </div>
+  </div>
+
+  <span
+    class="inline-grid size-20 shrink-0 place-items-center justify-self-end overflow-hidden rounded-full border border-ds-primary-soft bg-ds-primary-soft text-subtitle-3 text-ds-primary-strong max-[420px]:size-16 max-[360px]:size-14"
+    aria-hidden="true"
+  >
+    {
+      profileImageUrl ? (
+        <img class="size-full object-cover" src={profileImageUrl} alt="" />
+      ) : member.data.profileEmoji ? (
+        member.data.profileEmoji
+      ) : (
+        getInitials(member.data)
+      )
+    }
+  </span>
+</article>

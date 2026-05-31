@@ -1,0 +1,67 @@
+---
+import { getCollection, render } from "astro:content";
+import CommentsPanel from "@/components/content/CommentsPanel.astro";
+import ContentLike from "@/components/content/ContentLike.astro";
+import ContentShare from "@/components/content/ContentShare.astro";
+import ContentToc from "@/components/content/ContentToc.astro";
+import ReleaseVersionChip from "@/components/releases/ReleaseVersionChip.astro";
+import Container from "@/components/ui/Container.astro";
+import PartChip from "@/components/ui/PartChip.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { filterPublished } from "@/lib/content";
+import { formatDate } from "@/lib/format";
+
+export async function getStaticPaths() {
+  const releases = filterPublished(await getCollection("releases"));
+
+  return releases.map((release) => ({
+    params: { slug: release.id },
+    props: { release },
+  }));
+}
+
+const { release } = Astro.props;
+const { Content, headings } = await render(release);
+const tocHeadings = headings.filter((heading) => {
+  return heading.depth >= 1 && heading.depth <= 3 && heading.slug !== "footnote-label";
+});
+const hasToc = tocHeadings.length > 0;
+---
+
+<BaseLayout title={release.data.title} description={release.data.summary}>
+  <Container class="py-20 max-[760px]:py-12">
+    <header class="mx-auto grid max-w-[1040px] px-8 pb-8 max-[1040px]:max-w-[760px] max-[760px]:px-2 max-[640px]:pb-6">
+      <div class="grid max-w-[760px] gap-4">
+        <div class="flex flex-wrap items-center gap-2">
+          <PartChip part={release.data.platform} />
+          <ReleaseVersionChip version={release.data.version} />
+        </div>
+        <h1 class="m-0 text-display-1 text-ds-text-strong break-keep">{release.data.title}</h1>
+        <p class="m-0 max-w-[720px] text-subtitle-2 text-ds-text-muted break-keep">{release.data.summary}</p>
+        <div class="flex flex-wrap items-center justify-between gap-3 border-t border-ds-divider pt-4 text-body-2 text-ds-text-caption">
+          <time datetime={release.data.releasedAt.toISOString()}>{formatDate(release.data.releasedAt)}</time>
+          <ContentLike type="release" slug={release.id} />
+        </div>
+      </div>
+    </header>
+
+    <div
+      class:list={[
+        "mx-auto grid items-start px-8 max-[760px]:px-2",
+        hasToc
+          ? "max-w-[1040px] grid-cols-[minmax(0,760px)_minmax(152px,1fr)] gap-16 max-[1040px]:max-w-[760px] max-[1040px]:grid-cols-1 max-[1040px]:gap-8"
+          : "max-w-[760px] grid-cols-[minmax(0,760px)]",
+      ]}
+    >
+      <div class="grid min-w-0 max-w-[760px] gap-10">
+        <article class="prose">
+          <Content />
+        </article>
+
+        <ContentShare title={release.data.title} description={release.data.summary} />
+        <CommentsPanel type="release" slug={release.id} />
+      </div>
+      <ContentToc headings={tocHeadings} />
+    </div>
+  </Container>
+</BaseLayout>

@@ -1,0 +1,36 @@
+---
+import type { TeamGroup } from "@/lib/content";
+import MemberProfileCard from "./MemberProfileCard.astro";
+
+type Member = {
+  id: string;
+  data: {
+    name: string;
+    nickname: string;
+    school: string;
+    profileImage?: string;
+    profileImageId?: string;
+    profileImageExtension?: string;
+    profileEmoji?: string;
+    bio: string;
+    parts: string[];
+  };
+};
+
+type Props = {
+  group: TeamGroup<Member>;
+};
+
+const { group } = Astro.props;
+---
+
+<section class="mt-14 grid gap-4" aria-labelledby={`team-${group.team}`}>
+  <h2 class="m-0 text-heading-6 text-ds-text-strong" id={`team-${group.team}`}>{group.team}</h2>
+  <div class="grid grid-cols-3 gap-3 max-[960px]:grid-cols-2 max-[640px]:grid-cols-1">
+    {
+      group.items.map((item) => (
+        <MemberProfileCard member={item.member} participation={item.participation} />
+      ))
+    }
+  </div>
+</section>

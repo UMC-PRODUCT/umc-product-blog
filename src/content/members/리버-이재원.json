@@ -1,0 +1,45 @@
+{
+  "name": "이재원",
+  "nickname": "리버",
+  "school": "한성대학교",
+  "profileImageId": "river-lee",
+  "profileImageExtension": "webp",
+  "profileEmoji": "😊",
+  "bio": "",
+  "parts": [
+    "ios",
+    "server"
+  ],
+  "participations": [
+    {
+      "generation": "1st",
+      "role": "App Team Vice Lead",
+      "team": "Head of Product",
+      "order": 3
+    },
+    {
+      "generation": "1st",
+      "role": "Lead",
+      "team": "iOS",
+      "order": 2
+    },
+    {
+      "generation": "2nd",
+      "role": "Lead",
+      "team": "Head of Product",
+      "order": 1
+    },
+    {
+      "generation": "2nd",
+      "role": "Member",
+      "team": "iOS",
+      "order": 2
+    },
+    {
+      "generation": "2nd",
+      "role": "Member",
+      "team": "Server",
+      "order": 10
+    }
+  ]
+}

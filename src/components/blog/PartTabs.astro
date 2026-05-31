@@ -1,0 +1,42 @@
+---
+import { getBlogPartPath } from "@/lib/content";
+import { getPartLabel, PART_IDS } from "@/lib/taxonomy";
+
+type Props = {
+  currentPart?: string;
+};
+
+const { currentPart } = Astro.props;
+const tabClass = "inline-flex min-h-12 items-center border-b-2 text-label-2";
+---
+
+<nav class="mb-8 flex flex-wrap items-center gap-8" aria-label="블로그 파트">
+  <a
+    class:list={[
+      tabClass,
+      !currentPart
+        ? "border-ds-primary text-ds-text-strong"
+        : "border-transparent text-ds-text-caption transition-colors hover:text-ds-text-strong",
+    ]}
+    href={getBlogPartPath()}
+    aria-current={!currentPart ? "page" : undefined}
+  >
+    All
+  </a>
+  {
+    PART_IDS.map((part) => (
+      <a
+        class:list={[
+          tabClass,
+          currentPart === part
+            ? "border-ds-primary text-ds-text-strong"
+            : "border-transparent text-ds-text-caption transition-colors hover:text-ds-text-strong",
+        ]}
+        href={getBlogPartPath(part)}
+        aria-current={currentPart === part ? "page" : undefined}
+      >
+        {getPartLabel(part)}
+      </a>
+    ))
+  }
+</nav>

@@ -1,0 +1,26 @@
+{
+  "name": "조경석",
+  "nickname": "조나단",
+  "school": "명지대학교",
+  "profileImageId": "jonathan-cho",
+  "profileImageExtension": "webp",
+  "profileEmoji": "😎",
+  "bio": "",
+  "parts": [
+    "android"
+  ],
+  "participations": [
+    {
+      "generation": "1st",
+      "role": "Member",
+      "team": "Android",
+      "order": 3
+    },
+    {
+      "generation": "2nd",
+      "role": "Lead",
+      "team": "Android",
+      "order": 4
+    }
+  ]
+}

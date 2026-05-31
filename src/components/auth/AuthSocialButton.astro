@@ -1,0 +1,66 @@
+---
+import AuthIcon from "./AuthIcon.astro";
+
+type Social = "apple" | "google" | "kakao" | "github";
+type Appearance = "black" | "white" | "yellow" | "dark";
+
+type Props = {
+  social: Social;
+  label: string;
+  attr?: string;
+  appearance?: Appearance;
+  hidden?: boolean;
+};
+
+const { social, label, attr, appearance, hidden = false } = Astro.props;
+
+const defaultAppearanceBySocial: Record<Social, Appearance> = {
+  apple: "black",
+  google: "white",
+  kakao: "yellow",
+  github: "dark",
+};
+
+const currentAppearance = appearance ?? defaultAppearanceBySocial[social];
+
+const buttonClassByAppearance: Record<Appearance, string> = {
+  black: "bg-black hover:bg-neutral-900",
+  white: "border border-teal-gray-300 bg-white hover:bg-teal-gray-50",
+  yellow: "bg-[#FEE500] hover:bg-[#F9E108]",
+  dark: "bg-[#24292F] hover:bg-[#1F2429]",
+};
+
+const iconClassBySocial: Record<Social, string> = {
+  apple: "size-6",
+  google: "size-5",
+  kakao: "size-5",
+  github: "size-5",
+};
+
+const foregroundClassByAppearance: Record<Appearance, string> = {
+  black: "text-white",
+  white: "text-teal-gray-900",
+  yellow: "text-teal-gray-900",
+  dark: "text-white",
+};
+
+const foregroundClass = foregroundClassByAppearance[currentAppearance];
+---
+
+{
+  !hidden && (
+    <button
+      class:list={[
+        "flex h-12 min-h-12 w-full max-w-[360px] items-center justify-center rounded-[10px] px-7 transition-colors",
+        buttonClassByAppearance[currentAppearance],
+      ]}
+      {...{ [attr ?? `data-login-${social}`]: "" }}
+      type="button"
+    >
+      <span class:list={["flex items-center justify-center gap-3", foregroundClass]}>
+        <AuthIcon icon={social} class:list={[iconClassBySocial[social], foregroundClass]} />
+        <span class="text-label-1-medium">{label}</span>
+      </span>
+    </button>
+  )
+}

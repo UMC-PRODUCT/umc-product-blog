@@ -1,0 +1,57 @@
+---
+import { resolveAuthors } from "@/lib/content";
+import EmptyState from "@/components/ui/EmptyState.astro";
+import PostCard from "./PostCard.astro";
+
+type Post = {
+  id: string;
+  data: {
+    title: string;
+    description: string;
+    publishedAt: Date;
+    tags: string[];
+    parts: string[];
+    authors: string[];
+  };
+};
+
+type Member = {
+  id: string;
+  data: {
+    name: string;
+    nickname?: string;
+    profileImage?: string;
+    profileImageId?: string;
+    profileImageExtension?: string;
+    profileEmoji?: string;
+  };
+};
+
+type Props = {
+  posts: Post[];
+  members: Member[];
+  emptyTitle?: string;
+  emptyDescription?: string;
+  class?: string;
+  emptyClass?: string;
+};
+
+const {
+  posts,
+  members,
+  emptyTitle = "앗! 아직 등록된 글이 없어요.",
+  emptyDescription = "열심히 타자를 치고 있어요. 조금만 기다려 주세요.",
+  class: className = "",
+  emptyClass = "",
+} = Astro.props;
+---
+
+{
+  posts.length > 0 ? (
+    <div class:list={["grid gap-0", className]}>
+      {posts.map((post) => <PostCard post={post} authors={resolveAuthors(post, members)} />)}
+    </div>
+  ) : (
+    <EmptyState title={emptyTitle} description={emptyDescription} class={emptyClass} />
+  )
+}

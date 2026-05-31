@@ -1,0 +1,17 @@
+{
+  "name": "김연진",
+  "nickname": "코튼",
+  "school": "상명대학교",
+  "bio": "",
+  "parts": [
+    "web"
+  ],
+  "participations": [
+    {
+      "generation": "1st",
+      "role": "Lead",
+      "team": "Web",
+      "order": 24
+    }
+  ]
+}

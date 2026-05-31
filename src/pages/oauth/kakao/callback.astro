@@ -1,0 +1,33 @@
+---
+import Container from "@/components/ui/Container.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Kakao Login" description="Kakao 로그인을 처리합니다.">
+  <Container class="py-20 max-[760px]:py-12">
+    <section class="mx-auto grid max-w-[520px] gap-3 text-center">
+      <p class="m-0 text-label-3 uppercase text-ds-primary">OAuth</p>
+      <h1 class="m-0 text-heading-4 text-ds-text-strong">로그인 처리 중</h1>
+      <p class="m-0 text-body-2 text-ds-text-muted" id="kakao-callback-status">
+        Kakao 인증 결과를 확인하고 있습니다.
+      </p>
+    </section>
+  </Container>
+</BaseLayout>
+
+<script>
+  import { handleKakaoCallback, redirectAfterAuth } from "@/lib/auth/oauth";
+
+  const status = document.querySelector<HTMLElement>("#kakao-callback-status");
+
+  void (async () => {
+    try {
+      redirectAfterAuth(await handleKakaoCallback());
+    } catch (error) {
+      status!.textContent = error instanceof Error ? error.message : "Kakao 로그인에 실패했습니다.";
+      window.setTimeout(() => {
+        window.location.href = "/login";
+      }, 1400);
+    }
+  })();
+</script>

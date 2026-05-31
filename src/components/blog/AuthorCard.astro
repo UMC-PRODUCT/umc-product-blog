@@ -1,0 +1,63 @@
+---
+import PartChip from "@/components/ui/PartChip.astro";
+import { getInitials, getMemberProfileImageUrl } from "@/lib/format";
+
+type Author = {
+  id: string;
+  data: {
+    name: string;
+    nickname: string;
+    school: string;
+    profileImage?: string;
+    profileImageId?: string;
+    profileImageExtension?: string;
+    profileEmoji?: string;
+    bio: string;
+    parts: string[];
+  };
+};
+
+type Props = {
+  authors: Author[];
+};
+
+const { authors } = Astro.props;
+---
+
+<aside class="grid gap-5" aria-label="작성자 정보">
+  {
+    authors.length > 0 ? (
+      authors.map((author) => {
+        const profileImageUrl = getMemberProfileImageUrl(author.data);
+
+        return (
+          <div class="flex items-start gap-4">
+            <span class="inline-grid size-14 shrink-0 place-items-center overflow-hidden rounded-full border border-ds-primary-soft bg-ds-primary-soft text-heading-7 text-ds-primary-strong" aria-hidden="true">
+              {profileImageUrl ? (
+                <img class="size-full object-cover" src={profileImageUrl} alt="" />
+              ) : author.data.profileEmoji ? (
+                author.data.profileEmoji
+              ) : (
+                getInitials(author.data)
+              )}
+            </span>
+            <div class="grid gap-1.5">
+              <p class="m-0 text-heading-7 text-ds-text-strong">{author.data.name}</p>
+              <p class="m-0 text-body-2 text-ds-text-caption">
+                {author.data.nickname} · {author.data.school}
+              </p>
+              {author.data.bio && <p class="m-0 text-body-2 text-ds-text-muted">{author.data.bio}</p>}
+              {author.data.parts.length > 0 && (
+                <div class="flex flex-wrap items-center gap-2 pt-1">
+                  {author.data.parts.map((part) => <PartChip part={part} />)}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })
+    ) : (
+      <p class="m-0 text-body-2 text-ds-text-caption">작성자 정보가 준비 중입니다.</p>
+    )
+  }
+</aside>

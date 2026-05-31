@@ -1,0 +1,39 @@
+---
+import { getReleasePlatformPath } from "@/lib/content";
+import { getPartLabel, PLATFORM_IDS } from "@/lib/taxonomy";
+
+type Props = {
+  current?: string;
+};
+
+const { current } = Astro.props;
+---
+
+<nav class="mb-8 flex flex-wrap items-center gap-8" aria-label="릴리즈 플랫폼">
+  <a
+    class:list={[
+      "inline-flex min-h-12 items-center border-b-2 text-label-2",
+      !current ? "border-ds-primary text-ds-text-strong" : "border-transparent text-ds-text-caption",
+    ]}
+    href={getReleasePlatformPath()}
+    aria-current={!current ? "page" : undefined}
+  >
+    All
+  </a>
+  {
+    PLATFORM_IDS.map((platform) => (
+      <a
+        class:list={[
+          "inline-flex min-h-12 items-center border-b-2 text-label-2 transition-colors hover:text-ds-text-strong",
+          current === platform
+            ? "border-ds-primary text-ds-text-strong"
+            : "border-transparent text-ds-text-caption",
+        ]}
+        href={getReleasePlatformPath(platform)}
+        aria-current={current === platform ? "page" : undefined}
+      >
+        {getPartLabel(platform)}
+      </a>
+    ))
+  }
+</nav>

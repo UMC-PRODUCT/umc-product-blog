@@ -1,0 +1,33 @@
+---
+import { getCollection } from "astro:content";
+import PostList from "@/components/blog/PostList.astro";
+import Container from "@/components/ui/Container.astro";
+import SectionHeader from "@/components/ui/SectionHeader.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { filterPublished, getSeriesPosts } from "@/lib/content";
+
+export async function getStaticPaths() {
+  const seriesEntries = await getCollection("series");
+
+  return seriesEntries.map((series) => ({
+    params: { id: series.id },
+    props: { series },
+  }));
+}
+
+const { series } = Astro.props;
+const members = await getCollection("members");
+const posts = getSeriesPosts(filterPublished(await getCollection("blog")), series.id);
+---
+
+<BaseLayout title={series.data.title} description={series.data.description}>
+  <Container class="py-20 max-[760px]:py-12">
+    <SectionHeader eyebrow="Series" title={series.data.title} description={series.data.description} />
+    <PostList
+      posts={posts}
+      members={members}
+      emptyTitle="아직 이 시리즈에 글이 없어요."
+      emptyDescription="시리즈에 연결된 글이 발행되면 이곳에 표시됩니다."
+    />
+  </Container>
+</BaseLayout>

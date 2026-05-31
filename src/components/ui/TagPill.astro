@@ -1,0 +1,11 @@
+---
+type Props = {
+  tag: string;
+};
+
+const { tag } = Astro.props;
+---
+
+<span class="inline-flex min-h-7 items-center whitespace-nowrap text-label-3 text-ds-text-caption">
+  #{tag}
+</span>

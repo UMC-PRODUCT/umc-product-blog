@@ -1,0 +1,16 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Login" description="UMC PRODUCT 계정으로 로그인합니다." hideChrome>
+  <section class="text-body-2-regular grid min-h-screen place-items-center gap-3 text-teal-gray-600">
+    <p>로그인 페이지로 이동하고 있습니다.</p>
+    <a class="text-label-2-medium text-teal-600" href="/login/oauth">로그인</a>
+  </section>
+</BaseLayout>
+
+<script>
+  import { buildDefaultLoginRedirectPath } from "@/lib/auth/session";
+
+  window.location.replace(buildDefaultLoginRedirectPath(window.location.search, window.location.hash));
+</script>

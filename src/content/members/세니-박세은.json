@@ -1,0 +1,25 @@
+{
+  "name": "박세은",
+  "nickname": "세니",
+  "school": "동덕여자대학교",
+  "profileImageId": "seni-park",
+  "profileImageExtension": "webp",
+  "bio": "",
+  "parts": [
+    "server"
+  ],
+  "participations": [
+    {
+      "generation": "1st",
+      "role": "Member",
+      "team": "Server",
+      "order": 14
+    },
+    {
+      "generation": "2nd",
+      "role": "Member",
+      "team": "Server",
+      "order": 13
+    }
+  ]
+}

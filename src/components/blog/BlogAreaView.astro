@@ -1,0 +1,32 @@
+---
+import { getCollection } from "astro:content";
+import PostList from "@/components/blog/PostList.astro";
+import Container from "@/components/ui/Container.astro";
+import SectionHeader from "@/components/ui/SectionHeader.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { filterByParts, filterPublished, sortByDateDesc } from "@/lib/content";
+import { BLOG_AREAS, type BlogAreaId } from "@/lib/taxonomy";
+
+type Props = {
+  area: BlogAreaId;
+};
+
+const { area } = Astro.props;
+const areaConfig = BLOG_AREAS[area];
+const members = await getCollection("members");
+const allPosts = sortByDateDesc(filterPublished(await getCollection("blog")), "publishedAt");
+const posts = filterByParts(allPosts, areaConfig.parts);
+---
+
+<BaseLayout title={`${areaConfig.title} Blog`} description={areaConfig.description}>
+  <Container class="py-20 max-[760px]:py-12">
+    <SectionHeader eyebrow="Blog" title={areaConfig.title} description={areaConfig.description} />
+
+    <PostList
+      posts={posts}
+      members={members}
+      emptyTitle={`${areaConfig.label} 글을 준비 중이에요.`}
+      emptyDescription="이 영역의 고민과 결정들이 정리되면 이곳에 표시됩니다."
+    />
+  </Container>
+</BaseLayout>

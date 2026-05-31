@@ -1,0 +1,20 @@
+{
+  "name": "김동민",
+  "nickname": "원",
+  "school": "한국외국어대학교",
+  "profileImageId": "won-kim",
+  "profileImageExtension": "webp",
+  "profileEmoji": "👻",
+  "bio": "",
+  "parts": [
+    "ios"
+  ],
+  "participations": [
+    {
+      "generation": "2nd",
+      "role": "Member",
+      "team": "iOS",
+      "order": 20
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+---
+import { getCollection } from "astro:content";
+import Container from "@/components/ui/Container.astro";
+import EmptyState from "@/components/ui/EmptyState.astro";
+import SectionHeader from "@/components/ui/SectionHeader.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { filterPublished, getSeriesPath, getSeriesPosts } from "@/lib/content";
+
+const seriesEntries = (await getCollection("series")).sort((left, right) => {
+  return (left.data.order ?? 0) - (right.data.order ?? 0);
+});
+const posts = filterPublished(await getCollection("blog"));
+---
+
+<BaseLayout title="Series" description="연결된 블로그 글을 시리즈로 모아봅니다.">
+  <Container class="py-20 max-[760px]:py-12">
+    <SectionHeader
+      eyebrow="Series"
+      title="시리즈"
+      description="태그와는 별개로, 이어지는 글들을 하나의 흐름으로 볼 수 있게 모았습니다."
+    />
+
+    {
+      seriesEntries.length > 0 ? (
+        <div class="grid gap-0 border-t border-ds-divider">
+          {seriesEntries.map((series) => {
+            const count = getSeriesPosts(posts, series.id).length;
+            return (
+              <article class="grid gap-2 border-b border-ds-divider py-8">
+                <a class="text-heading-6 text-ds-text-strong transition-colors hover:text-ds-primary-strong" href={getSeriesPath(series.id)}>
+                  {series.data.title}
+                </a>
+                <p class="m-0 max-w-[720px] text-body-1 text-ds-text-muted">{series.data.description}</p>
+                <p class="m-0 text-caption-1 text-ds-text-caption">{count} posts</p>
+              </article>
+            );
+          })}
+        </div>
+      ) : (
+        <EmptyState
+          title="아직 시리즈가 없어요."
+          description="이어지는 글들이 정리되면 이곳에 표시됩니다."
+        />
+      )
+    }
+  </Container>
+</BaseLayout>

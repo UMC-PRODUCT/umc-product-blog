@@ -1,0 +1,27 @@
+---
+import { getCollection } from "astro:content";
+import AboutPageContent from "@/components/about/AboutPageContent.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+
+export async function getStaticPaths() {
+  const generations = await getCollection("generations");
+
+  return generations.map((generation) => ({
+    params: { generation: generation.id },
+    props: { generation },
+  }));
+}
+
+const generations = (await getCollection("generations")).sort(
+  (left, right) => right.data.order - left.data.order,
+);
+const members = await getCollection("members");
+const { generation } = Astro.props;
+---
+
+<BaseLayout
+  title={`${generation.data.label} About`}
+  description={`UMC PRODUCT ${generation.data.label} 구성원 소개입니다.`}
+>
+  <AboutPageContent generations={generations} currentGeneration={generation} members={members} />
+</BaseLayout>

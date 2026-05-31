@@ -1,0 +1,420 @@
+---
+import LoginModal from "@/components/auth/LoginModal.astro";
+import type { ContentRef } from "@/lib/content-interactions";
+
+type Props = ContentRef;
+
+const { type, slug } = Astro.props;
+
+const textareaClass =
+  "text-body-2-regular min-h-[132px] resize-y rounded-[10px] border border-teal-gray-200 bg-white p-4 text-teal-gray-900 outline-none transition-colors placeholder:text-teal-gray-400 focus:border-teal-400 disabled:bg-teal-gray-50 disabled:text-teal-gray-400";
+const submitClass =
+  "text-label-2-medium inline-flex min-h-11 items-center justify-center rounded-[10px] bg-teal-300 px-4 text-white transition-colors hover:bg-teal-400 disabled:cursor-not-allowed disabled:opacity-55";
+const nicknameInputClass =
+  "text-body-2-regular h-11 w-full rounded-[10px] border border-teal-gray-200 bg-white py-0 pr-[4.75rem] pl-4 text-teal-gray-700 outline-none transition-colors placeholder:text-teal-gray-400 focus:border-teal-400 focus:bg-teal-50 focus:text-teal-gray-800";
+const commentPlaceholder =
+  "로그인 없이 남긴 댓글은 나중에 수정하거나 삭제할 수 없어요.\n허위사실, 욕설, 사칭 등 댓글은 통보 없이 삭제될 수 있습니다.";
+---
+
+<section class="grid gap-5 border-t border-ds-divider pt-8" data-comments-panel data-content-type={type} data-content-slug={slug}>
+  <header class="flex flex-wrap items-center justify-between gap-2">
+    <h2 class="text-heading-7-semibold text-teal-gray-900">댓글 <span data-comments-count>0</span></h2>
+    <span
+      class="text-caption-2-medium hidden text-ds-error"
+      data-comments-load-error
+      role="status"
+      aria-live="polite"
+    ></span>
+  </header>
+
+  <form class="grid gap-3.5" data-comment-form>
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="w-full min-w-0" data-comment-guest-summary>
+        <div class="group relative w-full">
+          <input
+            class={nicknameInputClass}
+            data-comment-guest-nickname
+            type="text"
+            placeholder="닉네임을 입력하세요"
+            autocomplete="nickname"
+            maxlength="20"
+            aria-label="댓글 닉네임"
+          />
+          <button
+            class="text-caption-1-medium absolute top-1/2 right-1.5 inline-flex h-8 -translate-y-1/2 items-center justify-center rounded-[8px] bg-teal-gray-100 px-3 text-teal-gray-600 transition-colors hover:bg-teal-gray-150 hover:text-teal-gray-800 focus-visible:ring-2 focus-visible:ring-teal-300 focus-visible:ring-offset-1 focus-visible:outline-none group-focus-within:ring-1 group-focus-within:ring-teal-gray-300"
+            data-comment-guest-nickname-random
+            type="button"
+            aria-label="랜덤 닉네임 생성"
+          >
+            랜덤 변경
+          </button>
+        </div>
+      </div>
+      <div class="hidden min-w-0 items-center gap-3.5" data-comment-member-summary>
+        <div class="text-label-1-medium inline-flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-teal-100 text-teal-600" data-comment-author-avatar>
+          <span data-comment-author-fallback>M</span>
+        </div>
+        <span class="text-label-1-medium min-w-0 truncate text-teal-gray-900" data-comment-author-name>Member</span>
+      </div>
+      <label class="text-label-2-medium hidden min-h-11 shrink-0 cursor-pointer items-center gap-1.5 text-teal-gray-600 transition-colors hover:text-teal-700" data-comment-anonymous-control>
+        <input class="peer sr-only" data-comment-anonymous type="checkbox" />
+        <span class="inline-flex size-4 rounded-[6px] border border-teal-gray-300 bg-white peer-checked:border-teal-500 peer-checked:bg-teal-500 peer-checked:shadow-[inset_0_0_0_4px_white]" aria-hidden="true"></span>
+        <span>익명</span>
+      </label>
+    </div>
+    <textarea
+      class={textareaClass}
+      data-comment-input
+      placeholder={commentPlaceholder}
+    ></textarea>
+    <div class="flex items-center justify-end gap-3">
+      <button class={submitClass} data-comment-submit type="submit">댓글 남기기</button>
+    </div>
+    <p class="text-caption-1-medium min-h-[19px] text-teal-gray-500" data-comments-status role="status"></p>
+  </form>
+
+  <div class="mt-2 grid gap-3.5" data-comments-list>
+    <p class="text-body-2-regular text-teal-gray-500">댓글을 불러오고 있습니다.</p>
+  </div>
+</section>
+
+<LoginModal />
+
+<script>
+  import { getCurrentMember } from "@/lib/auth/api";
+  import {
+    getAuthMemberDisplayName,
+    getAuthMemberInitial,
+    getAuthMemberProfileImage,
+  } from "@/lib/auth/profile";
+  import {
+    AUTH_SESSION_CHANGE_EVENT,
+    readAuthSession,
+  } from "@/lib/auth/session";
+  import type { AuthMember } from "@/lib/auth/types";
+  import {
+    applyOptimisticLike,
+    countComments,
+    createComment,
+    getComments,
+    toggleCommentLike,
+    type ContentRef,
+    type InteractionAuthor,
+    type TechBlogComment,
+  } from "@/lib/content-interactions";
+  import { generateRandomNickname } from "@/lib/random-nickname";
+  import { showToast } from "@/lib/ui/toast";
+
+  const COMMENT_EMPTY_CLASS = "text-body-2-regular text-teal-gray-500";
+  const COMMENT_ITEM_CLASS = "grid gap-3 rounded-[20px] bg-teal-gray-50 p-5";
+  const COMMENT_REPLY_CLASS = "ml-6 rounded-[18px] bg-teal-gray-100";
+  const COMMENT_HEADER_CLASS = "flex items-center justify-start gap-2";
+  const COMMENT_AVATAR_CLASS = "text-label-2-medium inline-flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-teal-100 text-teal-600";
+  const COMMENT_AUTHOR_CLASS = "text-label-2-medium text-teal-gray-900";
+  const COMMENT_BODY_CLASS = "text-body-2-regular whitespace-pre-wrap break-words text-teal-gray-800";
+  const COMMENT_ACTIONS_CLASS = "flex items-center gap-3";
+  const COMMENT_ACTION_CLASS = "text-caption-2-medium text-teal-gray-600 hover:text-teal-600";
+  const COMMENT_REPLY_FORM_CLASS = "mt-1 grid gap-3";
+  const COMMENT_TEXTAREA_CLASS =
+    "text-body-2-regular min-h-[132px] resize-y rounded-[10px] border border-teal-gray-200 bg-white p-4 text-teal-gray-900 outline-none transition-colors placeholder:text-teal-gray-400 focus:border-teal-400 disabled:bg-teal-gray-50 disabled:text-teal-gray-400";
+  const COMMENT_SUBMIT_CLASS =
+    "text-label-2-medium inline-flex min-h-11 items-center justify-center rounded-[10px] bg-teal-300 px-4 text-white transition-colors hover:bg-teal-400 disabled:cursor-not-allowed disabled:opacity-55";
+  const COMMENT_SUBMIT_ACTIVE_CLASS =
+    "text-label-2-medium inline-flex min-h-11 items-center justify-center rounded-[10px] bg-teal-500 px-4 text-white transition-colors hover:bg-teal-600 disabled:cursor-not-allowed disabled:opacity-55";
+
+  function readRef(root: HTMLElement): ContentRef {
+    return {
+      type: root.dataset.contentType as ContentRef["type"],
+      slug: root.dataset.contentSlug ?? "",
+    };
+  }
+
+  function setStatus(root: HTMLElement, message: string): void {
+    const status = root.querySelector<HTMLElement>("[data-comments-status]");
+    if (status) status.textContent = message;
+  }
+
+  function setLoadError(root: HTMLElement, message: string): void {
+    const error = root.querySelector<HTMLElement>("[data-comments-load-error]");
+    if (!error) return;
+    error.textContent = message;
+    error.classList.toggle("hidden", !message);
+  }
+
+  function setFlexVisible(element: HTMLElement | null, visible: boolean, displayClass = "flex"): void {
+    element?.classList.toggle("hidden", !visible);
+    element?.classList.toggle(displayClass, visible);
+  }
+
+  function setAvatar(container: HTMLElement, imageUrl: string | null, fallback: string): void {
+    container.innerHTML = "";
+    if (imageUrl) {
+      const image = document.createElement("img");
+      image.src = imageUrl;
+      image.alt = "";
+      image.className = "size-full object-cover";
+      container.append(image);
+      return;
+    }
+
+    const span = document.createElement("span");
+    span.textContent = fallback;
+    container.append(span);
+  }
+
+  function getAuthorName(author: InteractionAuthor | undefined): string {
+    return author?.nickname || author?.name || "익명";
+  }
+
+  function getAuthorInitial(author: InteractionAuthor | undefined): string {
+    return getAuthorName(author).trim().charAt(0).toUpperCase() || "M";
+  }
+
+  async function refreshAuthState(root: HTMLElement): Promise<void> {
+    const isAuthed = Boolean(readAuthSession());
+    const textarea = root.querySelector<HTMLTextAreaElement>("[data-comment-input]");
+    const submit = root.querySelector<HTMLButtonElement>("[data-comment-submit]");
+    const name = root.querySelector<HTMLElement>("[data-comment-author-name]");
+    const avatar = root.querySelector<HTMLElement>("[data-comment-author-avatar]");
+    const guestSummary = root.querySelector<HTMLElement>("[data-comment-guest-summary]");
+    const memberSummary = root.querySelector<HTMLElement>("[data-comment-member-summary]");
+    const anonymousControl = root.querySelector<HTMLElement>("[data-comment-anonymous-control]");
+    const anonymousInput = root.querySelector<HTMLInputElement>("[data-comment-anonymous]");
+
+    if (!isAuthed) {
+      textarea!.disabled = false;
+      textarea!.readOnly = false;
+      submit!.disabled = false;
+      if (anonymousInput) anonymousInput.checked = false;
+      setFlexVisible(guestSummary, true);
+      setFlexVisible(memberSummary, false);
+      setFlexVisible(anonymousControl, false, "inline-flex");
+      return;
+    }
+
+    textarea!.readOnly = false;
+    textarea!.disabled = false;
+    submit!.disabled = false;
+    setFlexVisible(guestSummary, false);
+    setFlexVisible(memberSummary, true);
+    setFlexVisible(anonymousControl, true, "inline-flex");
+
+    let member: AuthMember | null = null;
+    try {
+      member = await getCurrentMember();
+    } catch {
+      member = null;
+    }
+
+    if (avatar) {
+      setAvatar(avatar, getAuthMemberProfileImage(member), getAuthMemberInitial(member));
+    }
+    if (name) {
+      name.textContent = member ? getAuthMemberDisplayName(member) : "Member";
+    }
+    if (!member) {
+      showToast({ message: "회원 정보를 불러오지 못했습니다.", variant: "error" });
+    }
+  }
+
+  function renderComments(root: HTMLElement, comments: TechBlogComment[]): void {
+    const list = root.querySelector<HTMLElement>("[data-comments-list]");
+    const count = root.querySelector<HTMLElement>("[data-comments-count]");
+    list!.innerHTML = "";
+    setLoadError(root, "");
+    if (count) count.textContent = String(countComments(comments));
+
+    if (comments.length === 0) {
+      const empty = document.createElement("p");
+      empty.className = COMMENT_EMPTY_CLASS;
+      empty.textContent = "아직 댓글이 없습니다.";
+      list!.append(empty);
+      return;
+    }
+
+    for (const comment of comments) {
+      list!.append(renderComment(root, comment, false));
+      for (const reply of comment.replies) {
+        list!.append(renderComment(root, reply, true));
+      }
+    }
+  }
+
+  function renderComment(root: HTMLElement, comment: TechBlogComment, isReply: boolean): HTMLElement {
+    const item = document.createElement("article");
+    item.className = isReply ? `${COMMENT_ITEM_CLASS} ${COMMENT_REPLY_CLASS}` : COMMENT_ITEM_CLASS;
+
+    const header = document.createElement("div");
+    header.className = COMMENT_HEADER_CLASS;
+
+    const avatar = document.createElement("div");
+    avatar.className = COMMENT_AVATAR_CLASS;
+    setAvatar(avatar, comment.author?.profileImageUrl ?? null, getAuthorInitial(comment.author));
+
+    const author = document.createElement("strong");
+    author.className = COMMENT_AUTHOR_CLASS;
+    author.textContent = getAuthorName(comment.author);
+    header.append(avatar, author);
+
+    const body = document.createElement("p");
+    body.className = COMMENT_BODY_CLASS;
+    body.textContent = comment.content;
+
+    const actions = document.createElement("div");
+    actions.className = COMMENT_ACTIONS_CLASS;
+    const like = document.createElement("button");
+    like.type = "button";
+    like.className = COMMENT_ACTION_CLASS;
+    like.textContent = `${comment.likedByMe ? "♥" : "♡"} ${comment.likeCount}`;
+    like.addEventListener("click", () => handleCommentLike(root, comment, like));
+    actions.append(like);
+
+    if (!isReply) {
+      const reply = document.createElement("button");
+      reply.type = "button";
+      reply.className = COMMENT_ACTION_CLASS;
+      reply.textContent = "답글";
+      reply.addEventListener("click", () => toggleReplyForm(root, item, comment.id));
+      actions.append(reply);
+    }
+
+    item.append(header, body, actions);
+    return item;
+  }
+
+  function requireLogin(): boolean {
+    if (readAuthSession()) return true;
+    window.dispatchEvent(new CustomEvent("umc-open-login-modal"));
+    return false;
+  }
+
+  function readGuestNickname(root: HTMLElement): string {
+    return root.querySelector<HTMLInputElement>("[data-comment-guest-nickname]")?.value.trim() || "익명";
+  }
+
+  function isAnonymousComment(root: HTMLElement): boolean {
+    if (!readAuthSession()) return true;
+    return root.querySelector<HTMLInputElement>("[data-comment-anonymous]")?.checked ?? false;
+  }
+
+  function syncSubmitState(root: HTMLElement): void {
+    const input = root.querySelector<HTMLTextAreaElement>("[data-comment-input]");
+    const submit = root.querySelector<HTMLButtonElement>("[data-comment-submit]");
+    if (!submit) return;
+    submit.className = input?.value.trim() ? COMMENT_SUBMIT_ACTIVE_CLASS : COMMENT_SUBMIT_CLASS;
+  }
+
+  function handleCommentLike(root: HTMLElement, comment: TechBlogComment, button: HTMLButtonElement): void {
+    if (!requireLogin()) return;
+
+    const previous = { likedByMe: comment.likedByMe, likeCount: comment.likeCount };
+    const optimistic = applyOptimisticLike(previous);
+    comment.likedByMe = optimistic.likedByMe;
+    comment.likeCount = optimistic.likeCount;
+    button.textContent = `${comment.likedByMe ? "♥" : "♡"} ${comment.likeCount}`;
+
+    void toggleCommentLike(readRef(root), comment.id).catch(() => {
+      comment.likedByMe = previous.likedByMe;
+      comment.likeCount = previous.likeCount;
+      button.textContent = `${comment.likedByMe ? "♥" : "♡"} ${comment.likeCount}`;
+      showToast({ message: "댓글 좋아요 변경에 실패했습니다.", variant: "error" });
+    });
+  }
+
+  function toggleReplyForm(root: HTMLElement, item: HTMLElement, parentCommentId: string | number): void {
+    const existing = item.querySelector<HTMLFormElement>("[data-comment-reply-form]");
+    if (existing) {
+      existing.remove();
+      return;
+    }
+
+    const form = document.createElement("form");
+    form.className = COMMENT_REPLY_FORM_CLASS;
+    form.dataset.commentReplyForm = "true";
+    const textarea = document.createElement("textarea");
+    textarea.className = COMMENT_TEXTAREA_CLASS;
+    textarea.placeholder = "답글을 남겨주세요.";
+    const submit = document.createElement("button");
+    submit.className = COMMENT_SUBMIT_CLASS;
+    submit.type = "submit";
+    submit.textContent = "답글 등록";
+    form.append(textarea, submit);
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      void submitComment(root, textarea.value, parentCommentId);
+    });
+    item.append(form);
+  }
+
+  async function submitComment(
+    root: HTMLElement,
+    content: string,
+    parentCommentId?: string | number,
+  ): Promise<boolean> {
+    const trimmed = content.trim();
+    if (!trimmed) {
+      setStatus(root, "");
+      showToast({ message: "댓글 내용을 입력해 주세요.", variant: "error" });
+      return false;
+    }
+
+    try {
+      await createComment(readRef(root), {
+        content: trimmed,
+        parentCommentId,
+        anonymous: isAnonymousComment(root),
+        nickname: readAuthSession() ? undefined : readGuestNickname(root),
+      });
+      await reloadComments(root);
+      setStatus(root, parentCommentId ? "답글을 등록했습니다." : "댓글을 등록했습니다.");
+      return true;
+    } catch {
+      showToast({
+        message: parentCommentId ? "답글 등록에 실패했어요." : "댓글 등록에 실패했어요.",
+        variant: "error",
+      });
+      return false;
+    }
+  }
+
+  async function reloadComments(root: HTMLElement): Promise<void> {
+    renderComments(root, await getComments(readRef(root)));
+  }
+
+  for (const root of document.querySelectorAll<HTMLElement>("[data-comments-panel]")) {
+    const form = root.querySelector<HTMLFormElement>("[data-comment-form]");
+    const input = root.querySelector<HTMLTextAreaElement>("[data-comment-input]");
+    const guestNickname = root.querySelector<HTMLInputElement>("[data-comment-guest-nickname]");
+    const guestNicknameRandom = root.querySelector<HTMLButtonElement>("[data-comment-guest-nickname-random]");
+    void refreshAuthState(root);
+
+    window.addEventListener(AUTH_SESSION_CHANGE_EVENT, () => {
+      void refreshAuthState(root);
+    });
+
+    void reloadComments(root).catch(() => {
+      const list = root.querySelector<HTMLElement>("[data-comments-list]");
+      list!.innerHTML = "";
+      setLoadError(root, "댓글을 불러오지 못했습니다.");
+      showToast({ message: "댓글을 불러오지 못했습니다.", variant: "error" });
+    });
+
+    syncSubmitState(root);
+    input?.addEventListener("input", () => syncSubmitState(root));
+    guestNicknameRandom?.addEventListener("click", () => {
+      if (!guestNickname) return;
+      guestNickname.value = generateRandomNickname();
+      guestNickname.focus();
+    });
+
+    form!.addEventListener("submit", (event) => {
+      event.preventDefault();
+      void submitComment(root, input!.value).then((success) => {
+        if (success) {
+          input!.value = "";
+          syncSubmitState(root);
+        }
+      });
+    });
+  }
+</script>

@@ -1,0 +1,157 @@
+---
+import AuthNav from "@/components/auth/AuthNav.astro";
+import wordmarkUrl from "@/assets/umc_product_wordmark.svg?url";
+import { BLOG_AREA_IDS, BLOG_AREAS, getBlogAreaPath } from "@/lib/taxonomy";
+
+type NavItem = {
+  href: string;
+  label: string;
+};
+
+type Props = {
+  currentPath: string;
+};
+
+const { currentPath } = Astro.props;
+const navItems: NavItem[] = [
+  ...BLOG_AREA_IDS.map((area) => ({
+    href: getBlogAreaPath(area),
+    label: BLOG_AREAS[area].label,
+  })),
+  { href: "/releases", label: "Release Notes" },
+  { href: "/about", label: "About" },
+];
+
+function isActive(href: string): boolean {
+  return href === "/" ? currentPath === href : currentPath.startsWith(href);
+}
+---
+
+<header class="sticky top-0 z-10 bg-ds-surface/90 backdrop-blur-2xl" data-site-header>
+  <div class="mx-auto grid w-[calc(100%_-_32px)] max-w-[1180px] max-[760px]:w-[calc(100%_-_24px)]">
+    <div class="flex min-h-16 items-center justify-between gap-6">
+      <a class="inline-flex h-10 min-w-max items-center gap-2.5 text-ds-text-strong transition-colors hover:text-ds-primary" href="/" aria-label="UMC PRODUCT 홈">
+        <span
+          class="block h-[14px] w-[160px] bg-current [-webkit-mask-image:var(--wordmark-url)] [-webkit-mask-position:left_center] [-webkit-mask-repeat:no-repeat] [-webkit-mask-size:contain] [mask-image:var(--wordmark-url)] [mask-position:left_center] [mask-repeat:no-repeat] [mask-size:contain] max-[420px]:w-[138px]"
+          style={`--wordmark-url: url("${wordmarkUrl}")`}
+          aria-hidden="true"
+        />
+      </a>
+
+      <div class="flex h-10 min-w-0 items-center justify-end gap-5 max-[760px]:gap-2">
+        <nav class="flex flex-wrap items-center justify-end gap-6 max-[760px]:hidden" aria-label="주요 메뉴">
+          {
+            navItems.map((item) => (
+              <a
+                class:list={[
+                  "inline-flex h-10 items-center p-0 text-subtitle-3-semibold transition-colors",
+                  isActive(item.href)
+                    ? "text-ds-primary font-semibold"
+                    : "text-ds-text-muted hover:text-ds-primary-strong",
+                ]}
+                href={item.href}
+                aria-current={isActive(item.href) ? "page" : undefined}
+              >
+                {item.label}
+              </a>
+            ))
+          }
+        </nav>
+        <AuthNav />
+        <button
+          class="inline-grid size-10 place-items-center bg-transparent p-0 text-ds-text-strong transition-colors hover:text-ds-primary min-[761px]:hidden"
+          type="button"
+          aria-label="메뉴 열기"
+          aria-controls="site-header-menu"
+          aria-expanded="false"
+          data-site-menu-toggle
+        >
+          <span class="grid h-[14px] w-[20px] place-items-center gap-[4px]" aria-hidden="true" data-site-menu-open-icon>
+            <span class="block h-0.5 w-5 bg-current"></span>
+            <span class="block h-0.5 w-5 bg-current"></span>
+            <span class="block h-0.5 w-5 bg-current"></span>
+          </span>
+          <span class="relative hidden h-[14px] w-[20px]" aria-hidden="true" data-site-menu-close-icon>
+            <span class="absolute top-1/2 left-1/2 block h-0.5 w-5 -translate-x-1/2 -translate-y-1/2 rotate-45 bg-current"></span>
+            <span class="absolute top-1/2 left-1/2 block h-0.5 w-5 -translate-x-1/2 -translate-y-1/2 -rotate-45 bg-current"></span>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <div
+      id="site-header-menu"
+      class="grid grid-rows-[0fr] overflow-hidden opacity-0 transition-[grid-template-rows,opacity] duration-200 ease-out min-[761px]:hidden"
+      data-site-menu
+    >
+      <nav class="grid min-h-0 justify-start gap-1 overflow-hidden border-t border-ds-divider py-4 text-left" aria-label="모바일 주요 메뉴">
+        {
+          navItems.map((item) => (
+            <a
+              class:list={[
+                "inline-flex min-h-10 w-max items-center p-0 text-subtitle-3-semibold transition-colors",
+                isActive(item.href)
+                  ? "text-ds-primary font-semibold"
+                  : "text-ds-text-muted hover:text-ds-primary-strong",
+              ]}
+              href={item.href}
+              aria-current={isActive(item.href) ? "page" : undefined}
+            >
+              {item.label}
+            </a>
+          ))
+        }
+      </nav>
+    </div>
+  </div>
+</header>
+
+<script>
+  const MOBILE_HEADER_QUERY = window.matchMedia("(max-width: 760px)");
+
+  for (const header of document.querySelectorAll<HTMLElement>("[data-site-header]")) {
+    const toggle = header.querySelector<HTMLButtonElement>("[data-site-menu-toggle]");
+    const menu = header.querySelector<HTMLElement>("[data-site-menu]");
+    const openIcon = header.querySelector<HTMLElement>("[data-site-menu-open-icon]");
+    const closeIcon = header.querySelector<HTMLElement>("[data-site-menu-close-icon]");
+
+    if (!toggle || !menu) continue;
+
+    function setMenuOpen(open: boolean): void {
+      const shouldCollapse = MOBILE_HEADER_QUERY.matches && !open;
+
+      menu?.classList.toggle("grid-rows-[1fr]", open);
+      menu?.classList.toggle("grid-rows-[0fr]", !open);
+      menu?.classList.toggle("opacity-100", open);
+      menu?.classList.toggle("opacity-0", !open);
+      menu?.setAttribute("aria-hidden", String(shouldCollapse));
+      if (menu) menu.inert = shouldCollapse;
+      toggle?.setAttribute("aria-expanded", String(open));
+      toggle?.setAttribute("aria-label", open ? "메뉴 닫기" : "메뉴 열기");
+      openIcon?.classList.toggle("hidden", open);
+      openIcon?.classList.toggle("grid", !open);
+      closeIcon?.classList.toggle("hidden", !open);
+      closeIcon?.classList.toggle("block", open);
+    }
+
+    toggle.addEventListener("click", () => {
+      setMenuOpen(toggle.getAttribute("aria-expanded") !== "true");
+    });
+
+    header.querySelectorAll<HTMLAnchorElement>("nav a").forEach((link) => {
+      link.addEventListener("click", () => {
+        if (MOBILE_HEADER_QUERY.matches) setMenuOpen(false);
+      });
+    });
+
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && MOBILE_HEADER_QUERY.matches) setMenuOpen(false);
+    });
+
+    MOBILE_HEADER_QUERY.addEventListener("change", () => {
+      setMenuOpen(false);
+    });
+
+    setMenuOpen(false);
+  }
+</script>

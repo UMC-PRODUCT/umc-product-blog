@@ -1,0 +1,31 @@
+{
+  "name": "umc-product-blog",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "check": "astro check",
+    "lint:content": "bun scripts/lint-content.ts",
+    "preview": "astro preview",
+    "test": "vitest run",
+    "format:check": "prettier --check '**/*.{js,ts,jsx,tsx,json,yaml,md,css}'",
+    "format": "prettier --write '**/*.{js,ts,jsx,tsx,json,yaml,md,css}'"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^6.0.1",
+    "@trivago/prettier-plugin-sort-imports": "^6.0.2",
+    "astro": "^6.4.2",
+    "markdown-it": "^14.2.0",
+    "prettier-plugin-tailwindcss": "^0.8.0",
+    "yaml": "^2.9.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "@tailwindcss/vite": "^4.3.0",
+    "@types/markdown-it": "^14.1.2",
+    "@types/node": "^25.9.1",
+    "tailwindcss": "^4.3.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.7"
+  }
+}

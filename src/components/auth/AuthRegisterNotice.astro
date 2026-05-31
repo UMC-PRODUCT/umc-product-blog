@@ -1,0 +1,16 @@
+---
+import ActionModalContent from "@/components/ui/ActionModalContent.astro";
+import { REGISTER_REQUIRED_NOTICE } from "@/lib/auth/registerRequiredNotice";
+
+const notice = {
+  title: REGISTER_REQUIRED_NOTICE.title,
+  description: REGISTER_REQUIRED_NOTICE.description,
+  type: REGISTER_REQUIRED_NOTICE.type,
+  primaryLabel: REGISTER_REQUIRED_NOTICE.primaryLabel,
+  primaryHref: REGISTER_REQUIRED_NOTICE.primaryHref,
+};
+---
+
+<ActionModalContent
+  {...notice}
+/>

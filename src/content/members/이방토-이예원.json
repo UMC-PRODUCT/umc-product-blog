@@ -1,0 +1,20 @@
+{
+  "name": "이예원",
+  "nickname": "이방토",
+  "school": "한양대학교 ERICA",
+  "profileImageId": "ebangto-lee",
+  "profileImageExtension": "webp",
+  "profileEmoji": "🍅",
+  "bio": "",
+  "parts": [
+    "design"
+  ],
+  "participations": [
+    {
+      "generation": "2nd",
+      "role": "Web",
+      "team": "Design",
+      "order": 18
+    }
+  ]
+}

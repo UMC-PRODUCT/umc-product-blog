@@ -1,0 +1,20 @@
+{
+  "name": "김미주",
+  "nickname": "마티",
+  "school": "덕성여자대학교",
+  "profileImageId": "mati-kim",
+  "profileImageExtension": "webp",
+  "profileEmoji": "🧸",
+  "bio": "",
+  "parts": [
+    "ios"
+  ],
+  "participations": [
+    {
+      "generation": "1st",
+      "role": "Member",
+      "team": "iOS",
+      "order": 5
+    }
+  ]
+}

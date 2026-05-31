@@ -1,0 +1,26 @@
+{
+  "name": "추연우",
+  "nickname": "우연",
+  "school": "명지대학교",
+  "profileImageId": "destiny-chu",
+  "profileImageExtension": "webp",
+  "profileEmoji": "🐍",
+  "bio": "",
+  "parts": [
+    "android"
+  ],
+  "participations": [
+    {
+      "generation": "2nd",
+      "role": "Vice Lead",
+      "team": "Head of Product",
+      "order": 2
+    },
+    {
+      "generation": "2nd",
+      "role": "Member",
+      "team": "Android",
+      "order": 2
+    }
+  ]
+}

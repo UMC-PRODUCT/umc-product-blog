@@ -1,0 +1,46 @@
+---
+type Props = {
+  title: string;
+  description: string;
+  actionHref?: string;
+  actionLabel?: string;
+  class?: string;
+  bordered?: boolean;
+};
+
+const {
+  title,
+  description,
+  actionHref,
+  actionLabel,
+  class: className = "",
+  bordered = true,
+} = Astro.props;
+---
+
+<div
+  class:list={[
+    "grid min-h-[320px] place-items-center bg-ds-surface px-6 py-16 text-center",
+    bordered && "border-y border-ds-divider",
+    className,
+  ]}
+>
+  <div class="grid max-w-[560px] gap-3">
+    <p class="m-0 text-label-3 uppercase text-ds-text-caption">Empty</p>
+    <h2 class="m-0 text-heading-3 text-ds-text-strong break-keep">
+      {title}
+    </h2>
+    <p class="m-0 text-body-1 text-ds-text-muted break-keep">{description}</p>
+    {
+      actionHref && actionLabel && (
+        <a
+          class="mt-3 inline-flex justify-self-center border-b-2 border-ds-primary pb-1 text-label-2 text-ds-text-strong"
+          href={actionHref}
+        >
+          {actionLabel}
+        </a>
+      )
+    }
+    <slot />
+  </div>
+</div>

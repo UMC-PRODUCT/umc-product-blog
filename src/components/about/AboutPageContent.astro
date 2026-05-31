@@ -1,0 +1,79 @@
+---
+import MembersView from "@/components/members/MembersView.astro";
+import Container from "@/components/ui/Container.astro";
+import SectionHeader from "@/components/ui/SectionHeader.astro";
+
+type Generation = {
+  id: string;
+  data: {
+    label: string;
+  };
+};
+
+type Member = {
+  id: string;
+  data: {
+    name: string;
+    nickname: string;
+    school: string;
+    profileImage?: string;
+    profileImageId?: string;
+    profileImageExtension?: string;
+    profileEmoji?: string;
+    bio: string;
+    parts: string[];
+    participations: {
+      generation: string;
+      role: string;
+      team: string;
+      order?: number;
+    }[];
+  };
+};
+
+type Props = {
+  generations: Generation[];
+  currentGeneration?: Generation;
+  members: Member[];
+};
+
+const { generations, currentGeneration, members } = Astro.props;
+---
+
+<Container class="py-14 max-[760px]:py-10">
+  <SectionHeader
+    eyebrow="About"
+    title="프로덕트팀을 소개합니다."
+    description="Focus on Growth, We Handle the Ops."
+  />
+
+  <div class="grid grid-cols-3 gap-4 max-[760px]:grid-cols-1">
+    <section class="border-t border-ds-divider py-7">
+      <h2 class="m-0 mb-2 text-heading-6 text-ds-text-strong">프론트엔드팀</h2>
+      <p class="m-0 text-body-1 text-ds-text-muted break-keep">기수별 리크루팅 및 데모데이 프로젝트 매칭 서비스 등을 제작하고 있습니다.</p>
+    </section>
+    <section class="border-t border-ds-divider py-7">
+      <h2 class="m-0 mb-2 text-heading-6 text-ds-text-strong">모바일팀</h2>
+      <p class="m-0 text-body-1 text-ds-text-muted break-keep">동아리 활동을 보다 쉽고 간편하게 할 수 있도록 iOS, Android 앱을 제작하고 있습니다.</p>
+    </section>
+    <section class="border-t border-ds-divider py-7">
+      <h2 class="m-0 mb-2 text-heading-6 text-ds-text-strong">서버팀</h2>
+      <p class="m-0 text-body-1 text-ds-text-muted break-keep">프로덕트팀에서 제공하고 있는 서비스가 안정적으로 운영될 수 있도록 백엔드 및 인프라를 구축하고 있습니다.</p>
+    </section>
+  </div>
+
+  <section id="members" class="pt-12">
+    <SectionHeader
+      eyebrow="Members"
+      title="구성원 소개"
+      description="기수별 인원을 소개드립니다."
+    />
+    <MembersView
+      generations={generations}
+      currentGeneration={currentGeneration}
+      members={members}
+      generationHrefBase="/about"
+      generationHrefSuffix="#members"
+    />
+  </section>
+</Container>

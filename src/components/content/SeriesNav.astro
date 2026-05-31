@@ -1,0 +1,52 @@
+---
+type SeriesPostLink = {
+  href: string;
+  title: string;
+  current?: boolean;
+};
+
+type Props = {
+  title: string;
+  href: string;
+  posts: SeriesPostLink[];
+  previous?: SeriesPostLink;
+  next?: SeriesPostLink;
+};
+
+const { title, href, posts, previous, next } = Astro.props;
+---
+
+<aside class="grid gap-4 rounded-lg border border-ds-divider bg-ds-surface-muted p-5" aria-label="시리즈">
+  <div class="grid gap-[0.35rem]">
+    <p class="m-0 text-label-3 uppercase text-ds-primary">Series</p>
+    <a class="text-heading-7 text-ds-text-strong transition-colors hover:text-ds-primary-strong" href={href}>
+      {title}
+    </a>
+  </div>
+  <ol class="m-0 grid gap-[0.45rem] pl-[1.2rem] text-ds-text-muted">
+    {
+      posts.map((post) => (
+        <li>
+          <a
+            class:list={[
+              "text-body-2 text-ds-text-muted transition-colors hover:text-ds-primary-strong",
+              post.current && "font-medium text-ds-primary-strong",
+            ]}
+            href={post.href}
+            aria-current={post.current ? "page" : undefined}
+          >
+            {post.title}
+          </a>
+        </li>
+      ))
+    }
+  </ol>
+  {
+    (previous || next) && (
+      <nav class="grid grid-cols-2 gap-3 border-t border-ds-divider pt-4" aria-label="시리즈 이전 다음 글">
+        {previous ? <a class="text-label-2 text-ds-primary-strong" href={previous.href}>이전: {previous.title}</a> : <span />}
+        {next ? <a class="text-label-2 text-ds-primary-strong" href={next.href}>다음: {next.title}</a> : <span />}
+      </nav>
+    )
+  }
+</aside>

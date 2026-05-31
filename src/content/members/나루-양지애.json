@@ -1,0 +1,20 @@
+{
+  "name": "양지애",
+  "nickname": "나루",
+  "school": "서울여자대학교",
+  "profileImageId": "naru-yang",
+  "profileImageExtension": "webp",
+  "profileEmoji": "🌌",
+  "bio": "",
+  "parts": [
+    "android"
+  ],
+  "participations": [
+    {
+      "generation": "1st",
+      "role": "Member",
+      "team": "Android",
+      "order": 4
+    }
+  ]
+}

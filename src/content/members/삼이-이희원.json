@@ -1,0 +1,26 @@
+{
+  "name": "이희원",
+  "nickname": "삼이",
+  "school": "성신여자대학교",
+  "profileImageId": "sami-lee",
+  "profileImageExtension": "webp",
+  "profileEmoji": "🌳",
+  "bio": "",
+  "parts": [
+    "design"
+  ],
+  "participations": [
+    {
+      "generation": "1st",
+      "role": "Mobile",
+      "team": "Design",
+      "order": 12
+    },
+    {
+      "generation": "2nd",
+      "role": "Lead",
+      "team": "Design",
+      "order": 11
+    }
+  ]
+}

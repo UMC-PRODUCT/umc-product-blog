@@ -1,0 +1,20 @@
+{
+  "name": "우자영",
+  "nickname": "시안",
+  "school": "한성대학교",
+  "profileImageId": "cyan-woo",
+  "profileImageExtension": "webp",
+  "profileEmoji": "❄️",
+  "bio": "",
+  "parts": [
+    "design"
+  ],
+  "participations": [
+    {
+      "generation": "2nd",
+      "role": "Android",
+      "team": "Design",
+      "order": 23
+    }
+  ]
+}

@@ -1,0 +1,155 @@
+---
+import HeaderActionButton from "@/components/ui/HeaderActionButton.astro";
+---
+
+<div class="relative flex h-10 items-center" data-auth-nav>
+  <HeaderActionButton hidden data-auth-login href="/login/oauth" label="로그인" />
+  <div class="relative flex h-10 items-center" hidden data-auth-profile>
+    <button class="text-label-2-medium flex size-10 items-center justify-center overflow-hidden rounded-full bg-teal-gray-200 text-teal-gray-500 transition-opacity hover:opacity-80" data-auth-profile-trigger type="button" aria-label="프로필" aria-haspopup="menu" aria-expanded="false">
+      <img class="hidden size-full object-cover" data-auth-profile-image alt="profile" />
+      <span data-auth-profile-fallback>M</span>
+    </button>
+    <div class="absolute top-12 right-0 z-40 flex hidden w-max min-w-[200px] flex-col gap-3.5 rounded-lg border border-teal-gray-100 bg-white px-3 py-4 shadow-ds-logo" data-auth-profile-menu role="menu">
+      <div class="flex items-center gap-3">
+        <div class="text-label-2-medium inline-flex size-[46px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-teal-gray-200 text-teal-gray-500">
+          <img class="hidden size-full object-cover" data-auth-profile-menu-image alt="profile" />
+          <span data-auth-profile-menu-fallback>M</span>
+        </div>
+        <div class="grid gap-0.5">
+          <strong class="text-subtitle-3-semibold whitespace-nowrap text-teal-gray-900" data-auth-name>Member</strong>
+          <span class="text-caption-2-medium text-teal-gray-500" data-auth-school></span>
+        </div>
+      </div>
+      <button class="text-body-2-regular self-start text-error-500" data-auth-logout type="button" role="menuitem">로그아웃</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { getCurrentMember } from "@/lib/auth/api";
+  import {
+    getAuthMemberDisplayName,
+    getAuthMemberInitial,
+    getAuthMemberProfileImage,
+  } from "@/lib/auth/profile";
+  import {
+    AUTH_SESSION_CHANGE_EVENT,
+    buildLoginOauthPath,
+    clearAuthSession,
+    readAuthSession,
+  } from "@/lib/auth/session";
+  import type { AuthMember } from "@/lib/auth/types";
+
+  function getRedirectPath(): string {
+    return `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  }
+
+  function setImage(
+    image: HTMLImageElement | null,
+    fallback: HTMLElement | null,
+    imageUrl: string | null,
+    initial: string,
+  ): void {
+    if (imageUrl && image) {
+      image.src = imageUrl;
+      image.classList.remove("hidden");
+      fallback?.classList.add("hidden");
+      return;
+    }
+
+    image?.classList.add("hidden");
+    if (fallback) {
+      fallback.textContent = initial;
+      fallback.classList.remove("hidden");
+    }
+  }
+
+  function renderMember(root: HTMLElement, member: AuthMember | null): void {
+    const initial = getAuthMemberInitial(member);
+    const imageUrl = getAuthMemberProfileImage(member);
+    setImage(
+      root.querySelector<HTMLImageElement>("[data-auth-profile-image]"),
+      root.querySelector<HTMLElement>("[data-auth-profile-fallback]"),
+      imageUrl,
+      initial,
+    );
+    setImage(
+      root.querySelector<HTMLImageElement>("[data-auth-profile-menu-image]"),
+      root.querySelector<HTMLElement>("[data-auth-profile-menu-fallback]"),
+      imageUrl,
+      initial,
+    );
+
+    const name = root.querySelector<HTMLElement>("[data-auth-name]");
+    const school = root.querySelector<HTMLElement>("[data-auth-school]");
+    if (name) name.textContent = member ? getAuthMemberDisplayName(member) : "Member";
+    if (school) school.textContent = member?.schoolName ?? "";
+  }
+
+  async function refreshAuthNav(root: HTMLElement): Promise<void> {
+    const loginLink = root.querySelector<HTMLAnchorElement>("[data-auth-login]");
+    const profile = root.querySelector<HTMLElement>("[data-auth-profile]");
+    const menu = root.querySelector<HTMLElement>("[data-auth-profile-menu]");
+    const trigger = root.querySelector<HTMLButtonElement>("[data-auth-profile-trigger]");
+    const session = readAuthSession();
+
+    if (loginLink) {
+      loginLink.href = buildLoginOauthPath(getRedirectPath());
+    }
+
+    if (!session) {
+      if (loginLink) loginLink.hidden = false;
+      if (profile) profile.hidden = true;
+      menu?.classList.add("hidden");
+      trigger?.setAttribute("aria-expanded", "false");
+      return;
+    }
+
+    if (loginLink) loginLink.hidden = true;
+    if (profile) profile.hidden = false;
+
+    try {
+      renderMember(root, await getCurrentMember());
+    } catch {
+      renderMember(root, null);
+    }
+  }
+
+  for (const root of document.querySelectorAll<HTMLElement>("[data-auth-nav]")) {
+    const trigger = root.querySelector<HTMLButtonElement>("[data-auth-profile-trigger]");
+    const menu = root.querySelector<HTMLElement>("[data-auth-profile-menu]");
+    const logoutButton = root.querySelector<HTMLButtonElement>("[data-auth-logout]");
+    const loginLink = root.querySelector<HTMLAnchorElement>("[data-auth-login]");
+
+    loginLink?.addEventListener("click", (event) => {
+      if (!document.querySelector("[data-login-modal]")) return;
+
+      event.preventDefault();
+      window.dispatchEvent(new CustomEvent("umc-open-login-modal"));
+    });
+
+    trigger?.addEventListener("click", () => {
+      const willOpen = menu?.classList.contains("hidden") ?? false;
+      menu?.classList.toggle("hidden", !willOpen);
+      trigger.setAttribute("aria-expanded", String(willOpen));
+    });
+
+    window.addEventListener("mousedown", (event) => {
+      if (!root.contains(event.target as Node)) {
+        menu?.classList.add("hidden");
+        trigger?.setAttribute("aria-expanded", "false");
+      }
+    });
+
+    logoutButton?.addEventListener("click", () => {
+      clearAuthSession();
+      void refreshAuthNav(root);
+    });
+
+    window.addEventListener(AUTH_SESSION_CHANGE_EVENT, () => {
+      void refreshAuthNav(root);
+    });
+
+    void refreshAuthNav(root);
+  }
+</script>

@@ -1,0 +1,32 @@
+---
+import AuthorChip from "./AuthorChip.astro";
+
+type Author = {
+  id: string;
+  data: {
+    name: string;
+    nickname?: string;
+  };
+};
+
+type Props = {
+  authors?: Author[];
+};
+
+const { authors = [] } = Astro.props;
+
+function getAuthorLabel(author: Author): string {
+  const name = author.data.name.trim();
+  const nickname = author.data.nickname?.trim();
+
+  return nickname && nickname !== name ? `${nickname}/${name}` : name;
+}
+---
+
+{
+  authors.length > 0 ? (
+    authors.map((author) => <AuthorChip label={getAuthorLabel(author)} />)
+  ) : (
+    <AuthorChip label="UMC PRODUCT" />
+  )
+}

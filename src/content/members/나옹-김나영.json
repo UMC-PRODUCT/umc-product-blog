@@ -1,0 +1,15 @@
+{
+  "name": "김나영",
+  "nickname": "나옹",
+  "school": "중앙대학교",
+  "bio": "",
+  "parts": ["design"],
+  "participations": [
+    {
+      "generation": "1st",
+      "role": "Web",
+      "team": "Design",
+      "order": 24
+    }
+  ]
+}

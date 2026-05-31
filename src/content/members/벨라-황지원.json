@@ -1,0 +1,26 @@
+{
+  "name": "황지원",
+  "nickname": "벨라",
+  "school": "중앙대학교",
+  "profileImageId": "bella-hwang",
+  "profileImageExtension": "webp",
+  "profileEmoji": "🍒",
+  "bio": "",
+  "parts": [
+    "pm"
+  ],
+  "participations": [
+    {
+      "generation": "1st",
+      "role": "Web Team Lead",
+      "team": "Head of Product",
+      "order": 1
+    },
+    {
+      "generation": "2nd",
+      "role": "Web PO",
+      "team": "Product Owner",
+      "order": 14
+    }
+  ]
+}

@@ -1,0 +1,114 @@
+---
+import type { ContentRef } from "@/lib/content-interactions";
+
+type Props = ContentRef;
+
+const { type, slug } = Astro.props;
+---
+
+<div class="flex items-center gap-3" data-content-like data-content-type={type} data-content-slug={slug}>
+  <button
+    class="text-label-2 inline-flex min-h-10 items-center gap-[0.45rem] rounded-full border border-ds-divider bg-ds-surface px-[0.9rem] text-ds-text-muted transition-colors hover:border-ds-primary hover:bg-ds-primary-soft hover:text-ds-primary-strong"
+    type="button"
+    data-content-like-button
+    aria-pressed="false"
+  >
+    <span aria-hidden="true" data-content-like-icon>♡</span>
+    <span data-content-like-count>0</span>
+  </button>
+  <span class="text-caption-1 text-ds-text-caption" data-content-like-status></span>
+</div>
+
+<script>
+  import { buildLoginPath, readAuthSession } from "@/lib/auth/session";
+  import {
+    applyOptimisticLike,
+    getContentLikeState,
+    toggleContentLike,
+    type ContentRef,
+    type LikeState,
+  } from "@/lib/content-interactions";
+  import { showToast } from "@/lib/ui/toast";
+
+  const LIKE_BUTTON_INACTIVE_CLASS =
+    "text-label-2 inline-flex min-h-10 items-center gap-[0.45rem] rounded-full border border-ds-divider bg-ds-surface px-[0.9rem] text-ds-text-muted transition-colors hover:border-ds-primary hover:bg-ds-primary-soft hover:text-ds-primary-strong";
+  const LIKE_BUTTON_ACTIVE_CLASS =
+    "text-label-2 inline-flex min-h-10 items-center gap-[0.45rem] rounded-full border border-ds-primary bg-ds-primary-soft px-[0.9rem] text-ds-primary-strong transition-colors hover:border-ds-primary hover:bg-ds-primary-soft hover:text-ds-primary-strong";
+  const LIKE_BUTTON_ERROR_CLASS =
+    "text-label-2 inline-flex min-h-10 items-center gap-[0.45rem] rounded-full border border-ds-error bg-ds-error-soft px-[0.9rem] text-ds-error transition-colors";
+
+  function readRef(root: HTMLElement): ContentRef {
+    return {
+      type: root.dataset.contentType as ContentRef["type"],
+      slug: root.dataset.contentSlug ?? "",
+    };
+  }
+
+  function render(root: HTMLElement, state: LikeState): void {
+    const button = root.querySelector<HTMLButtonElement>("[data-content-like-button]");
+    const icon = root.querySelector<HTMLElement>("[data-content-like-icon]");
+    const count = root.querySelector<HTMLElement>("[data-content-like-count]");
+
+    button?.setAttribute("aria-pressed", String(state.likedByMe));
+    if (button) button.className = state.likedByMe ? LIKE_BUTTON_ACTIVE_CLASS : LIKE_BUTTON_INACTIVE_CLASS;
+    if (icon) icon.textContent = state.likedByMe ? "♥" : "♡";
+    if (count) count.textContent = String(state.likeCount);
+  }
+
+  function setStatus(root: HTMLElement, message: string): void {
+    const status = root.querySelector<HTMLElement>("[data-content-like-status]");
+    if (status) status.textContent = message;
+  }
+
+  function renderError(root: HTMLElement): void {
+    const button = root.querySelector<HTMLButtonElement>("[data-content-like-button]");
+    const icon = root.querySelector<HTMLElement>("[data-content-like-icon]");
+    const count = root.querySelector<HTMLElement>("[data-content-like-count]");
+
+    button?.setAttribute("aria-pressed", "false");
+    if (button) button.className = LIKE_BUTTON_ERROR_CLASS;
+    if (icon) icon.textContent = "♡";
+    if (count) count.textContent = "!";
+  }
+
+  for (const root of document.querySelectorAll<HTMLElement>("[data-content-like]")) {
+    const ref = readRef(root);
+    const button = root.querySelector<HTMLButtonElement>("[data-content-like-button]");
+    let state: LikeState = { likedByMe: false, likeCount: 0 };
+
+    void getContentLikeState(ref)
+      .then((nextState) => {
+        state = nextState;
+        render(root, state);
+      })
+      .catch(() => {
+        renderError(root);
+        setStatus(root, "");
+        showToast({ message: "좋아요 정보를 불러오지 못했습니다.", variant: "error" });
+      });
+
+    button?.addEventListener("click", () => {
+      if (!readAuthSession()) {
+        window.location.href = buildLoginPath(window.location.pathname);
+        return;
+      }
+
+      const previous = state;
+      state = applyOptimisticLike(state);
+      render(root, state);
+
+      void toggleContentLike(ref)
+        .then((nextState) => {
+          state = nextState;
+          render(root, state);
+          setStatus(root, "");
+        })
+        .catch(() => {
+          state = previous;
+          render(root, state);
+          setStatus(root, "");
+          showToast({ message: "좋아요 변경에 실패했습니다.", variant: "error" });
+        });
+    });
+  }
+</script>

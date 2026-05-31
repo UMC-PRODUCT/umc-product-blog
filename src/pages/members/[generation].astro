@@ -1,0 +1,13 @@
+---
+import { getCollection } from "astro:content";
+
+export async function getStaticPaths() {
+  const generations = await getCollection("generations");
+
+  return generations.map((generation) => ({
+    params: { generation: generation.id },
+  }));
+}
+
+return Astro.redirect(`/about/${Astro.params.generation}#members`, 301);
+---

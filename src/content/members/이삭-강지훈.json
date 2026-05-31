@@ -1,0 +1,20 @@
+{
+  "name": "강지훈",
+  "nickname": "이삭",
+  "school": "가천대학교",
+  "profileImageId": "issac-kang",
+  "profileImageExtension": "webp",
+  "profileEmoji": "🐈",
+  "bio": "",
+  "parts": [
+    "web"
+  ],
+  "participations": [
+    {
+      "generation": "2nd",
+      "role": "Lead",
+      "team": "Web",
+      "order": 24
+    }
+  ]
+}

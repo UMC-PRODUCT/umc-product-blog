@@ -1,0 +1,11 @@
+---
+type Props = {
+  class?: string;
+};
+
+const { class: className = "" } = Astro.props;
+---
+
+<div class:list={["mx-auto w-[calc(100%_-_32px)] max-w-[1180px] max-[760px]:w-[calc(100%_-_24px)]", className]}>
+  <slot />
+</div>

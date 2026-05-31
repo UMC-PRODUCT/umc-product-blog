@@ -1,0 +1,39 @@
+name: Validate Pull Request
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    env:
+      PUBLIC_API_BASE_URL: ${{ vars.PUBLIC_API_BASE_URL }}
+      PUBLIC_APPLE_CLIENT_ID: ${{ vars.PUBLIC_APPLE_CLIENT_ID }}
+      PUBLIC_APPLE_REDIRECT_URI: ${{ vars.PUBLIC_APPLE_REDIRECT_URI }}
+      PUBLIC_GOOGLE_CLIENT_ID: ${{ vars.PUBLIC_GOOGLE_CLIENT_ID }}
+      PUBLIC_KAKAO_APP_KEY: ${{ vars.PUBLIC_KAKAO_APP_KEY }}
+      PUBLIC_GITHUB_APP_CLIENT_ID: ${{ vars.PUBLIC_GITHUB_APP_CLIENT_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Lint content
+        run: bun run lint:content
+
+      - name: Run tests
+        run: bun run test
+
+      - name: Build site
+        run: bun run build

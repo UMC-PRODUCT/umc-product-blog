@@ -1,0 +1,39 @@
+---
+import { getCollection } from "astro:content";
+import ReleasePageHeader, {
+  RELEASE_PAGE_DESCRIPTION,
+} from "@/components/releases/ReleasePageHeader.astro";
+import ReleaseList from "@/components/releases/ReleaseList.astro";
+import Container from "@/components/ui/Container.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { filterByPlatform, filterPublished, sortByDateDesc } from "@/lib/content";
+import { getPartLabel, PLATFORM_IDS, type PlatformId } from "@/lib/taxonomy";
+
+export function getStaticPaths() {
+  return PLATFORM_IDS.map((platform) => ({
+    params: { platform },
+    props: { platform },
+  }));
+}
+
+const allReleases = sortByDateDesc(filterPublished(await getCollection("releases")), "releasedAt");
+const currentPlatform = Astro.props.platform as PlatformId;
+const platformLabel = getPartLabel(currentPlatform);
+const releases = filterByPlatform(allReleases, currentPlatform);
+---
+
+<BaseLayout
+  title={`${platformLabel} Release Notes`}
+  description={RELEASE_PAGE_DESCRIPTION}
+>
+  <Container class="py-20 max-[760px]:py-12">
+    <ReleasePageHeader />
+
+    <ReleaseList
+      releases={releases}
+      currentPlatform={currentPlatform}
+      emptyTitle={`${platformLabel} 릴리즈 노트 준비 중`}
+      emptyDescription="첫 릴리즈가 공개되면 이 플랫폼에 변경 사항이 표시됩니다."
+    />
+  </Container>
+</BaseLayout>

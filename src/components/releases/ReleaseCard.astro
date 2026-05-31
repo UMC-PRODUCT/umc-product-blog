@@ -1,0 +1,48 @@
+---
+import PartChip from "@/components/ui/PartChip.astro";
+import ReleaseVersionChip from "@/components/releases/ReleaseVersionChip.astro";
+import { formatDate } from "@/lib/format";
+
+type Release = {
+  id: string;
+  data: {
+    title: string;
+    version: string;
+    platform: string;
+    releasedAt: Date;
+    summary: string;
+    tags: string[];
+  };
+};
+
+type Props = {
+  release: Release;
+  compact?: boolean;
+  bordered?: boolean;
+};
+
+const { release, compact = false, bordered = true } = Astro.props;
+---
+
+<article
+  class:list={[
+    "group grid gap-4",
+    bordered && "border-b border-ds-divider",
+    compact ? "py-6" : "py-9",
+  ]}
+>
+  <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+    <div class="flex flex-wrap items-center gap-2">
+      <PartChip part={release.data.platform} />
+      <ReleaseVersionChip version={release.data.version} />
+    </div>
+    <time class="text-caption-1 text-ds-text-caption" datetime={release.data.releasedAt.toISOString()}>
+      {formatDate(release.data.releasedAt)}
+    </time>
+  </div>
+
+  <h2 class:list={["m-0 max-w-[760px] font-semibold text-ds-text-strong break-keep", compact ? "text-heading-7" : "text-heading-6"]}>
+    <a class="transition-colors group-hover:text-ds-primary" href={`/releases/${release.id}`}>{release.data.title}</a>
+  </h2>
+  <p class="m-0 max-w-[680px] text-body-1 font-normal text-ds-text-default break-keep">{release.data.summary}</p>
+</article>

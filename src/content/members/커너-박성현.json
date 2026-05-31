@@ -1,0 +1,20 @@
+{
+  "name": "박성현",
+  "nickname": "커너",
+  "school": "가천대학교",
+  "profileImageId": "conor-park",
+  "profileImageExtension": "webp",
+  "profileEmoji": "🪵",
+  "bio": "",
+  "parts": [
+    "server"
+  ],
+  "participations": [
+    {
+      "generation": "2nd",
+      "role": "Member",
+      "team": "Server",
+      "order": 19
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "한현서",
+  "nickname": "헤일리",
+  "school": "동덕여자대학교",
+  "profileImageId": "hailey-han",
+  "profileImageExtension": "webp",
+  "bio": "",
+  "parts": [
+    "web"
+  ],
+  "participations": [
+    {
+      "generation": "2nd",
+      "role": "Member",
+      "team": "Web",
+      "order": 22
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+---
+import {
+  getMemberParticipationsForGeneration,
+  groupParticipationsByTeam,
+} from "@/lib/content";
+import EmptyState from "@/components/ui/EmptyState.astro";
+import GenerationTabs from "./GenerationTabs.astro";
+import TeamSection from "./TeamSection.astro";
+
+type Generation = {
+  id: string;
+  data: {
+    label: string;
+  };
+};
+
+type Member = {
+  id: string;
+  data: {
+    name: string;
+    nickname: string;
+    school: string;
+    profileImage?: string;
+    profileImageId?: string;
+    profileImageExtension?: string;
+    profileEmoji?: string;
+    bio: string;
+    parts: string[];
+    participations: {
+      generation: string;
+      role: string;
+      team: string;
+      order?: number;
+    }[];
+  };
+};
+
+type Props = {
+  generations: Generation[];
+  currentGeneration?: Generation;
+  members: Member[];
+  generationHrefBase?: string;
+  generationHrefSuffix?: string;
+};
+
+const {
+  generations,
+  currentGeneration,
+  members,
+  generationHrefBase,
+  generationHrefSuffix,
+} = Astro.props;
+const participations = currentGeneration
+  ? getMemberParticipationsForGeneration(members, currentGeneration.id)
+  : [];
+const groups = groupParticipationsByTeam(participations);
+---
+
+{
+  generations.length === 0 ? (
+    <EmptyState
+      title="구성원 정보를 준비 중입니다"
+      description="기수 정보가 추가되면 이 페이지에서 기수별 조직도와 구성원을 확인할 수 있습니다."
+    />
+  ) : (
+    <>
+      <GenerationTabs
+        generations={generations}
+        currentId={currentGeneration?.id}
+        hrefBase={generationHrefBase}
+        hrefSuffix={generationHrefSuffix}
+      />
+      {groups.length > 0 ? (
+        groups.map((group) => <TeamSection group={group} />)
+      ) : (
+        <EmptyState
+          title="해당 기수의 구성원 정보가 없습니다"
+          description="멤버 데이터에 이 기수의 참여 이력을 추가하면 팀과 역할 정보가 자동으로 표시됩니다."
+        />
+      )}
+    </>
+  )
+}

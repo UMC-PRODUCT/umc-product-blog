@@ -1,0 +1,16 @@
+---
+import { getCollection } from "astro:content";
+import AboutPageContent from "@/components/about/AboutPageContent.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { selectDefaultGeneration } from "@/lib/content";
+
+const generations = (await getCollection("generations")).sort(
+  (left, right) => right.data.order - left.data.order,
+);
+const members = await getCollection("members");
+const currentGeneration = selectDefaultGeneration(generations);
+---
+
+<BaseLayout title="About" description="UMC PRODUCT 조직 소개입니다.">
+  <AboutPageContent generations={generations} currentGeneration={currentGeneration} members={members} />
+</BaseLayout>

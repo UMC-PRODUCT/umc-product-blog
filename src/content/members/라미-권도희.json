@@ -1,0 +1,20 @@
+{
+  "name": "권도희",
+  "nickname": "라미",
+  "school": "한양대학교 ERICA",
+  "profileImageId": "lami-kwon",
+  "profileImageExtension": "webp",
+  "profileEmoji": "🐱",
+  "bio": "",
+  "parts": [
+    "server"
+  ],
+  "participations": [
+    {
+      "generation": "2nd",
+      "role": "Member",
+      "team": "Server",
+      "order": 16
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+---
+const DEFAULT_ACCOUNT_RECOVERY_HREF = "https://university.neordinary.com/login/default";
+
+type Props = {
+  href?: string;
+  label?: string;
+  class?: string;
+};
+
+const {
+  href = DEFAULT_ACCOUNT_RECOVERY_HREF,
+  label = "아이디/비밀번호 찾기",
+  class: className = "",
+} = Astro.props;
+---
+
+<a
+  class:list={[
+    "text-body-1-regular flex items-center justify-center px-1 py-0.5 text-teal-gray-500 transition-colors hover:text-teal-600",
+    className,
+  ]}
+  href={href}
+  data-auth-account-recovery
+>
+  {label}
+</a>

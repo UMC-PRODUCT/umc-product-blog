@@ -1,0 +1,60 @@
+---
+import { getInitials, getMemberProfileImageUrl } from "@/lib/format";
+
+type Author = {
+  id: string;
+  data: {
+    name: string;
+    nickname?: string;
+    profileImage?: string;
+    profileImageId?: string;
+    profileImageExtension?: string;
+    profileEmoji?: string;
+  };
+};
+
+type Props = {
+  authors?: Author[];
+};
+
+const { authors = [] } = Astro.props;
+const label =
+  authors.length > 0
+    ? authors.map((author) => author.data.nickname || author.data.name).join(", ")
+    : "UMC PRODUCT";
+---
+
+<span class="flex flex-wrap items-center gap-2 text-body-2 text-ds-text-caption">
+  <span class="flex items-center gap-1" aria-hidden="true">
+    {
+      authors.length > 0 ? (
+        authors.map((author) => {
+          const profileImageUrl = getMemberProfileImageUrl(author.data);
+
+          return (
+            <span class="inline-grid size-6 place-items-center overflow-hidden rounded-full border border-ds-primary-soft bg-ds-primary-soft text-caption-2 text-ds-primary-strong">
+              {profileImageUrl ? (
+                <img
+                  class="size-full object-cover"
+                  src={profileImageUrl}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                />
+              ) : author.data.profileEmoji ? (
+                author.data.profileEmoji
+              ) : (
+                getInitials(author.data)
+              )}
+            </span>
+          );
+        })
+      ) : (
+        <span class="inline-grid size-6 place-items-center overflow-hidden rounded-full border border-ds-primary-soft bg-ds-primary-soft text-caption-2 text-ds-primary-strong">
+          {getInitials({ name: "UMC" })}
+        </span>
+      )
+    }
+  </span>
+  <span>{label}</span>
+</span>

@@ -1,0 +1,26 @@
+{
+  "name": "이예지",
+  "nickname": "소피",
+  "school": "가천대학교",
+  "profileImageId": "sophie-lee",
+  "profileImageExtension": "webp",
+  "profileEmoji": "✨",
+  "bio": "",
+  "parts": [
+    "ios"
+  ],
+  "participations": [
+    {
+      "generation": "1st",
+      "role": "Member",
+      "team": "iOS",
+      "order": 7
+    },
+    {
+      "generation": "2nd",
+      "role": "Member",
+      "team": "iOS",
+      "order": 6
+    }
+  ]
+}

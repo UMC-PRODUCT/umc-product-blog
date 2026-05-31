@@ -1,0 +1,62 @@
+---
+import { getCollection } from "astro:content";
+import PostList from "@/components/blog/PostList.astro";
+import ReleaseCard from "@/components/releases/ReleaseCard.astro";
+import Container from "@/components/ui/Container.astro";
+import EmptyState from "@/components/ui/EmptyState.astro";
+import SectionHeader from "@/components/ui/SectionHeader.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { filterPublished, sortByDateDesc } from "@/lib/content";
+
+const members = await getCollection("members");
+const posts = sortByDateDesc(filterPublished(await getCollection("blog")), "publishedAt").slice(
+  0,
+  3,
+);
+const releases = sortByDateDesc(
+  filterPublished(await getCollection("releases")),
+  "releasedAt",
+).slice(0, 3);
+---
+
+<BaseLayout>
+  <Container class="py-20 max-[760px]:py-12">
+    <div
+      class="grid grid-cols-[minmax(0,1.45fr)_minmax(280px,.55fr)] items-stretch gap-14 max-[760px]:grid-cols-1"
+    >
+      <section class="flex h-full flex-col">
+        <SectionHeader
+          eyebrow="Product Team Blog"
+          title="프로덕트팀 이야기"
+          description="우리가 문제를 정의하고 해결하는 과정을 기록했어요."
+          size="section"
+        />
+        <PostList posts={posts} members={members} class="flex-1" emptyClass="flex-1" />
+      </section>
+
+      <aside class="flex h-full flex-col">
+        <SectionHeader
+          eyebrow="What's New?"
+          title="Release Notes"
+          description="고친 것, 만든 것, 그리고 몰래 좋아진 것들."
+          size="section"
+        />
+        {
+          releases.length > 0 ? (
+            <div class="grid flex-1 auto-rows-fr gap-0 border-t border-ds-divider">
+              {releases.map((release) => <ReleaseCard release={release} compact />)}
+            </div>
+          ) : (
+            <EmptyState
+              title="준비 중"
+              description="코드를 열심히 엮어내고 있어요! 조금만 기다려주세요."
+              actionHref="/releases"
+              actionLabel="보러가기"
+              class="flex-1"
+            />
+          )
+        }
+      </aside>
+    </div>
+  </Container>
+</BaseLayout>

@@ -1,0 +1,27 @@
+---
+import type { CollectionEntry } from "astro:content";
+import PlatformTabs from "@/components/releases/PlatformTabs.astro";
+import ReleaseCard from "@/components/releases/ReleaseCard.astro";
+import EmptyState from "@/components/ui/EmptyState.astro";
+
+type Props = {
+  releases: CollectionEntry<"releases">[];
+  currentPlatform?: string;
+  emptyTitle: string;
+  emptyDescription: string;
+};
+
+const { releases, currentPlatform, emptyTitle, emptyDescription } = Astro.props;
+---
+
+<PlatformTabs current={currentPlatform} />
+
+{
+  releases.length > 0 ? (
+    <div class="grid gap-0">
+      {releases.map((release) => <ReleaseCard release={release} bordered={false} />)}
+    </div>
+  ) : (
+    <EmptyState title={emptyTitle} description={emptyDescription} bordered={false} />
+  )
+}

@@ -1,0 +1,42 @@
+---
+import Container from "@/components/ui/Container.astro";
+import SectionHeader from "@/components/ui/SectionHeader.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="Writer"
+  description="UMC PRODUCT 블로그와 릴리즈 노트 MDX 초안을 생성하는 작성 도구입니다."
+>
+  <Container class="py-14 max-[760px]:py-10">
+    <SectionHeader
+      eyebrow="Writer"
+      title="작성 도구"
+      description="작성할 콘텐츠 타입을 선택하세요. 두 도구 모두 Markdown 미리보기, MDX 생성, TECH_BLOG 이미지 업로드를 지원합니다."
+    />
+
+    <div class="grid grid-cols-2 gap-4 max-[760px]:grid-cols-1">
+      <a
+        class="grid gap-3 rounded-lg border border-ds-divider bg-ds-surface p-5 transition-colors hover:border-ds-primary-soft hover:bg-ds-hover"
+        href="/write/blog"
+      >
+        <span class="text-label-3 uppercase text-ds-primary">Blog</span>
+        <strong class="text-heading-5 text-ds-text-strong">Tech Blog Writer</strong>
+        <span class="text-body-2 text-ds-text-muted">
+          title, description, parts, authors 기반의 블로그 MDX 초안을 생성합니다.
+        </span>
+      </a>
+
+      <a
+        class="grid gap-3 rounded-lg border border-ds-divider bg-ds-surface p-5 transition-colors hover:border-ds-primary-soft hover:bg-ds-hover"
+        href="/write/release"
+      >
+        <span class="text-label-3 uppercase text-ds-primary">Release</span>
+        <strong class="text-heading-5 text-ds-text-strong">Release Note Writer</strong>
+        <span class="text-body-2 text-ds-text-muted">
+          version, platform, releasedAt 기반의 릴리즈 노트 MDX 초안을 생성합니다.
+        </span>
+      </a>
+    </div>
+  </Container>
+</BaseLayout>

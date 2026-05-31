@@ -1,0 +1,39 @@
+{
+  "name": "정의찬",
+  "nickname": "제옹",
+  "school": "중앙대학교",
+  "profileImageId": "jeong-jeong",
+  "profileImageExtension": "webp",
+  "profileEmoji": "😭",
+  "bio": "",
+  "parts": [
+    "pm",
+    "ios"
+  ],
+  "participations": [
+    {
+      "generation": "1st",
+      "role": "App Team Lead",
+      "team": "Head of Product",
+      "order": 2
+    },
+    {
+      "generation": "1st",
+      "role": "Member",
+      "team": "iOS",
+      "order": 1
+    },
+    {
+      "generation": "2nd",
+      "role": "Mobile PO",
+      "team": "Product Owner",
+      "order": 3
+    },
+    {
+      "generation": "2nd",
+      "role": "Lead",
+      "team": "iOS",
+      "order": 3
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+---
+import AuthIcon from "./AuthIcon.astro";
+
+type Social = "apple" | "google" | "kakao";
+
+type Props = {
+  social: Social;
+  label: string;
+};
+
+const { social, label } = Astro.props;
+
+const buttonClassBySocial: Record<Social, string> = {
+  apple: "bg-black",
+  google: "border border-teal-gray-150 bg-white",
+  kakao: "bg-[#FEE500]",
+};
+
+const iconClassBySocial: Record<Social, string> = {
+  apple: "size-6 text-white",
+  google: "size-6",
+  kakao: "size-6 text-black",
+};
+---
+
+<button
+  class:list={["inline-flex size-[54px] items-center justify-center rounded-full", buttonClassBySocial[social]]}
+  {...{ [`data-login-${social}`]: "" }}
+  type="button"
+  aria-label={label}
+>
+  <AuthIcon icon={social} class={iconClassBySocial[social]} />
+</button>

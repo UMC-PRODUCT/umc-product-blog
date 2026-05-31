@@ -1,0 +1,74 @@
+---
+type ActionType = "default" | "confirm" | "destructive";
+type ActionAttrs = Record<string, string | boolean | undefined>;
+
+type Props = {
+  title: string;
+  description?: string;
+  type?: ActionType;
+  primaryLabel: string;
+  primaryHref?: string;
+  primaryAttrs?: ActionAttrs;
+  secondaryLabel?: string;
+  secondaryHref?: string;
+  secondaryAttrs?: ActionAttrs;
+};
+
+const {
+  title,
+  description,
+  type = "confirm",
+  primaryLabel,
+  primaryHref,
+  primaryAttrs = {},
+  secondaryLabel,
+  secondaryHref,
+  secondaryAttrs = {},
+} = Astro.props;
+
+const buttonBaseClass =
+  "text-body-1-medium inline-flex min-h-14 items-center justify-center rounded-[14px] px-4 transition-colors";
+const defaultButtonClass = `${buttonBaseClass} bg-teal-gray-100 text-teal-gray-700 hover:bg-teal-gray-150`;
+
+const primaryClassByType: Record<ActionType, string> = {
+  default: `${buttonBaseClass} bg-teal-gray-900 text-white hover:bg-teal-gray-800`,
+  confirm: `${buttonBaseClass} bg-teal-500 text-white hover:bg-teal-600`,
+  destructive: `${buttonBaseClass} bg-error-500 text-white hover:bg-error-600`,
+};
+
+const hasSecondary = Boolean(secondaryLabel);
+---
+
+<div class="grid gap-7">
+  <div class="mx-auto h-1 w-10 rounded-full bg-teal-gray-200" aria-hidden="true"></div>
+  <div class="grid gap-3 text-left">
+    <h2 id="action-modal-title" class="m-0 text-heading-6-semibold text-teal-gray-900">{title}</h2>
+    {description && <p class="m-0 whitespace-pre-line leading-relaxed text-body-1-regular text-teal-gray-600">{description}</p>}
+  </div>
+  <div class:list={["grid gap-2", hasSecondary ? "grid-cols-2" : "grid-cols-1"]}>
+    {
+      hasSecondary && (
+        secondaryHref ? (
+          <a class={defaultButtonClass} href={secondaryHref} {...secondaryAttrs}>
+            {secondaryLabel}
+          </a>
+        ) : (
+          <button class={defaultButtonClass} type="button" {...secondaryAttrs}>
+            {secondaryLabel}
+          </button>
+        )
+      )
+    }
+    {
+      primaryHref ? (
+        <a class={primaryClassByType[type]} href={primaryHref} {...primaryAttrs}>
+          {primaryLabel}
+        </a>
+      ) : (
+        <button class={primaryClassByType[type]} type="button" {...primaryAttrs}>
+          {primaryLabel}
+        </button>
+      )
+    }
+  </div>
+</div>

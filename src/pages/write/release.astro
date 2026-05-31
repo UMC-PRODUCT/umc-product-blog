@@ -1,0 +1,517 @@
+---
+import Container from "@/components/ui/Container.astro";
+import SectionHeader from "@/components/ui/SectionHeader.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getPartLabel, PLATFORM_IDS } from "@/lib/taxonomy";
+
+const today = new Date().toISOString().slice(0, 10);
+---
+
+<BaseLayout
+  title="Release Note Writer"
+  description="TECH_BLOG 이미지 업로드와 릴리즈 노트 MDX 초안 생성을 위한 작성 도구입니다."
+>
+  <Container class="py-14 max-[760px]:py-10">
+    <SectionHeader
+      eyebrow="Writer"
+      title="Release Note Writer"
+      description="이미지는 webp로 변환해 TECH_BLOG 카테고리로 업로드하고, 릴리즈 노트는 Astro releases collection에 맞는 MDX로 생성합니다."
+    />
+
+    <nav class="mb-6 flex flex-wrap gap-2" aria-label="작성 도구">
+      <a
+        class="inline-flex min-h-10 items-center rounded-md border border-ds-divider px-3 text-label-2 text-ds-text-muted transition-colors hover:border-ds-primary-soft hover:text-ds-primary-strong"
+        href="/write/blog"
+      >
+        Blog
+      </a>
+      <a
+        class="inline-flex min-h-10 items-center rounded-md border border-ds-primary-soft bg-ds-primary-soft px-3 text-label-2 text-ds-primary-strong"
+        href="/write/release"
+        aria-current="page"
+      >
+        Release
+      </a>
+    </nav>
+
+    <div class="grid grid-cols-[minmax(0,1fr)_minmax(320px,0.72fr)] gap-8 max-[960px]:grid-cols-1">
+      <section class="grid gap-5" aria-label="릴리즈 노트 작성">
+        <div class="grid gap-4 rounded-lg border border-ds-divider bg-ds-surface p-5" id="writer-auth-panel">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <p class="m-0 text-caption-1 text-ds-text-caption">
+              이미지 업로드 카테고리: <strong class="text-ds-text-strong">TECH_BLOG</strong>
+              <span class="ml-2" id="writer-auth-status">로그인 상태를 확인하고 있습니다.</span>
+            </p>
+            <a
+              class="inline-flex min-h-10 items-center rounded-md bg-ds-primary px-4 text-label-2 text-ds-surface transition-colors hover:bg-ds-primary-strong"
+              id="writer-login-link"
+              href="/login"
+            >
+              로그인
+            </a>
+          </div>
+        </div>
+
+        <div class="grid gap-4 rounded-lg border border-ds-divider bg-ds-surface p-5">
+          <div class="grid grid-cols-2 gap-4 max-[760px]:grid-cols-1">
+            <label class="grid gap-2 text-label-2 text-ds-text-muted">
+              제목
+              <input
+                class="min-h-12 rounded-md border border-ds-divider px-3 text-body-2 text-ds-text-strong outline-none transition-colors focus:border-ds-primary"
+                id="release-title"
+                name="title"
+                placeholder="릴리즈 노트 제목"
+              />
+            </label>
+            <label class="grid gap-2 text-label-2 text-ds-text-muted">
+              버전
+              <input
+                class="min-h-12 rounded-md border border-ds-divider px-3 text-body-2 text-ds-text-strong outline-none transition-colors focus:border-ds-primary"
+                id="release-version"
+                name="version"
+                placeholder="v1.0.0"
+              />
+            </label>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4 max-[760px]:grid-cols-1">
+            <label class="grid gap-2 text-label-2 text-ds-text-muted">
+              릴리즈일
+              <input
+                class="min-h-12 rounded-md border border-ds-divider px-3 text-body-2 text-ds-text-strong outline-none transition-colors focus:border-ds-primary"
+                id="released-at"
+                name="releasedAt"
+                type="date"
+                value={today}
+              />
+            </label>
+            <label class="grid gap-2 text-label-2 text-ds-text-muted">
+              태그
+              <input
+                class="min-h-12 rounded-md border border-ds-divider px-3 text-body-2 text-ds-text-strong outline-none transition-colors focus:border-ds-primary"
+                id="release-tags"
+                name="tags"
+                placeholder="QA, Release, Server"
+              />
+            </label>
+          </div>
+
+          <label class="grid gap-2 text-label-2 text-ds-text-muted">
+            요약
+            <input
+              class="min-h-12 rounded-md border border-ds-divider px-3 text-body-2 text-ds-text-strong outline-none transition-colors focus:border-ds-primary"
+              id="release-summary"
+              name="summary"
+              placeholder="릴리즈 목록과 메타 태그에 들어갈 한 줄 요약"
+            />
+          </label>
+
+          <div class="grid gap-2">
+            <span class="text-label-2 text-ds-text-muted">플랫폼</span>
+            <div class="flex flex-wrap gap-2">
+              {
+                PLATFORM_IDS.map((platform, index) => (
+                  <label class="inline-flex min-h-10 items-center gap-2 rounded-md border border-ds-divider px-3 text-label-2 text-ds-text-muted transition-colors hover:border-ds-primary-soft hover:bg-ds-hover">
+                    <input
+                      class="size-4"
+                      name="platform"
+                      type="radio"
+                      value={platform}
+                      checked={index === 0}
+                    />
+                    {getPartLabel(platform)}
+                  </label>
+                ))
+              }
+            </div>
+          </div>
+
+          <label class="inline-flex items-center gap-2 text-label-2 text-ds-text-muted">
+            <input class="size-4" id="release-draft" type="checkbox" checked />
+            draft로 생성
+          </label>
+        </div>
+
+        <div
+          class="grid gap-3 rounded-lg border border-dashed border-ds-divider bg-ds-hover p-5 transition-colors"
+          id="image-drop-zone"
+        >
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="grid gap-1">
+              <strong class="text-heading-7 text-ds-text-strong">이미지 업로드</strong>
+              <p class="m-0 text-body-2 text-ds-text-caption">
+                선택, 드래그, 붙여넣기 이미지를 webp로 변환한 뒤 본문 커서 위치에 삽입합니다.
+              </p>
+            </div>
+            <label
+              class="inline-flex min-h-10 cursor-pointer items-center rounded-md bg-ds-primary px-4 text-label-2 text-ds-surface transition-colors hover:bg-ds-primary-strong aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
+              id="image-upload-button"
+              aria-disabled="true"
+            >
+              파일 선택
+              <input class="hidden" id="image-files" type="file" accept="image/*" multiple disabled />
+            </label>
+          </div>
+          <ol class="grid gap-2 text-body-2 text-ds-text-muted" id="upload-log"></ol>
+        </div>
+
+        <label class="grid gap-2 text-label-2 text-ds-text-muted">
+          본문
+          <textarea
+            class="min-h-[420px] resize-y rounded-lg border border-ds-divider p-4 font-mono text-body-2 text-ds-text-strong outline-none transition-colors focus:border-ds-primary"
+            id="release-body"
+            name="body"
+            placeholder="## 변경 사항&#10;&#10;- 무엇이 바뀌었는지 적어주세요."
+          ></textarea>
+        </label>
+      </section>
+
+      <aside class="sticky top-24 grid h-max gap-4 max-[960px]:static" aria-label="MDX 생성">
+        <div class="grid gap-3 rounded-lg border border-ds-divider bg-ds-surface p-5">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 class="m-0 text-heading-7 text-ds-text-strong">본문 확인</h2>
+              <p class="m-0 mt-1 text-caption-1 text-ds-text-caption" id="release-slug-preview">
+                release-note.mdx
+              </p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button
+                class="inline-flex min-h-10 items-center rounded-md border border-ds-divider px-3 text-label-2 text-ds-text-muted transition-colors hover:border-ds-primary-soft hover:text-ds-primary-strong"
+                id="copy-mdx"
+                type="button"
+              >
+                복사
+              </button>
+              <button
+                class="inline-flex min-h-10 items-center rounded-md bg-ds-primary px-3 text-label-2 text-ds-surface transition-colors hover:bg-ds-primary-strong"
+                id="download-mdx"
+                type="button"
+              >
+                다운로드
+              </button>
+              <button
+                class="inline-flex min-h-10 items-center rounded-md border border-ds-divider px-3 text-label-2 text-ds-text-muted transition-colors hover:border-ds-primary-soft hover:text-ds-primary-strong"
+                id="save-draft"
+                type="button"
+              >
+                임시저장
+              </button>
+              <button
+                class="inline-flex min-h-10 items-center rounded-md bg-ds-primary px-3 text-label-2 text-ds-surface transition-colors hover:bg-ds-primary-strong"
+                id="publish-draft"
+                type="button"
+              >
+                발행 요청
+              </button>
+            </div>
+          </div>
+
+          <div class="flex rounded-md border border-ds-divider bg-ds-hover p-1" aria-label="본문 확인 모드">
+            <button
+              class="inline-flex min-h-9 flex-1 items-center justify-center rounded-md px-3 text-label-2 text-ds-primary-strong transition-colors"
+              id="preview-tab"
+              type="button"
+              aria-pressed="true"
+            >
+              미리보기
+            </button>
+            <button
+              class="inline-flex min-h-9 flex-1 items-center justify-center rounded-md px-3 text-label-2 text-ds-text-muted transition-colors"
+              id="mdx-tab"
+              type="button"
+              aria-pressed="false"
+            >
+              MDX
+            </button>
+          </div>
+
+          <div
+            class="prose tech-blog-preview min-h-[520px] overflow-auto rounded-md border border-ds-divider bg-ds-surface p-4 text-body-2"
+            id="body-preview"
+          ></div>
+          <textarea
+            class="hidden min-h-[520px] resize-y rounded-md border border-ds-divider bg-ds-hover p-3 font-mono text-caption-1 text-ds-text-strong outline-none"
+            id="mdx-output"
+            readonly
+          ></textarea>
+          <p class="m-0 text-caption-1 text-ds-text-caption" id="writer-status" role="status">
+            초안을 작성하면 MDX가 자동으로 갱신됩니다.
+          </p>
+        </div>
+      </aside>
+    </div>
+  </Container>
+</BaseLayout>
+
+<script>
+  import {
+    buildMdxRelease,
+    createReleaseSlug,
+    parseCommaSeparatedValues,
+    renderMarkdownPreview,
+  } from "@/lib/tech-blog-editor";
+  import {
+    publishTechBlogDraft,
+    saveTechBlogDraft,
+    type TechBlogDraftPayload,
+  } from "@/lib/tech-blog-drafts";
+  import type { PlatformId } from "@/lib/taxonomy";
+  import { buildLoginPath, readAuthSession } from "@/lib/auth/session";
+  import {
+    buildMarkdownImage,
+    insertTextAtRange,
+    uploadTechBlogImage,
+  } from "@/lib/tech-blog-upload";
+
+  const authStatus = document.querySelector<HTMLElement>("#writer-auth-status");
+  const loginLink = document.querySelector<HTMLAnchorElement>("#writer-login-link");
+  const titleInput = document.querySelector<HTMLInputElement>("#release-title");
+  const versionInput = document.querySelector<HTMLInputElement>("#release-version");
+  const releasedAtInput = document.querySelector<HTMLInputElement>("#released-at");
+  const summaryInput = document.querySelector<HTMLInputElement>("#release-summary");
+  const tagsInput = document.querySelector<HTMLInputElement>("#release-tags");
+  const draftInput = document.querySelector<HTMLInputElement>("#release-draft");
+  const bodyInput = document.querySelector<HTMLTextAreaElement>("#release-body");
+  const fileInput = document.querySelector<HTMLInputElement>("#image-files");
+  const uploadButton = document.querySelector<HTMLElement>("#image-upload-button");
+  const dropZone = document.querySelector<HTMLElement>("#image-drop-zone");
+  const uploadLog = document.querySelector<HTMLOListElement>("#upload-log");
+  const mdxOutput = document.querySelector<HTMLTextAreaElement>("#mdx-output");
+  const bodyPreview = document.querySelector<HTMLElement>("#body-preview");
+  const slugPreview = document.querySelector<HTMLElement>("#release-slug-preview");
+  const status = document.querySelector<HTMLElement>("#writer-status");
+  const copyButton = document.querySelector<HTMLButtonElement>("#copy-mdx");
+  const downloadButton = document.querySelector<HTMLButtonElement>("#download-mdx");
+  const saveDraftButton = document.querySelector<HTMLButtonElement>("#save-draft");
+  const publishDraftButton = document.querySelector<HTMLButtonElement>("#publish-draft");
+  const previewTab = document.querySelector<HTMLButtonElement>("#preview-tab");
+  const mdxTab = document.querySelector<HTMLButtonElement>("#mdx-tab");
+  let draftId: number | string | undefined;
+
+  refreshAuthState();
+
+  function getSelectedPlatform(): PlatformId {
+    return (
+      document.querySelector<HTMLInputElement>('input[name="platform"]:checked')?.value ?? "ios"
+    ) as PlatformId;
+  }
+
+  function getMdx(): string {
+    const title = titleInput!.value.trim();
+    const releasedAt = releasedAtInput!.value || new Date().toISOString().slice(0, 10);
+
+    return buildMdxRelease({
+      title,
+      version: versionInput!.value.trim(),
+      platform: getSelectedPlatform(),
+      releasedAt,
+      summary: summaryInput!.value.trim(),
+      tags: parseCommaSeparatedValues(tagsInput!.value),
+      draft: draftInput!.checked,
+      body: bodyInput!.value,
+    });
+  }
+
+  function getDraftPayload(): TechBlogDraftPayload {
+    const title = titleInput!.value.trim();
+    const releasedAt = releasedAtInput!.value || new Date().toISOString().slice(0, 10);
+    const tags = parseCommaSeparatedValues(tagsInput!.value);
+
+    return {
+      contentType: "release",
+      slug: createReleaseSlug(title, releasedAt),
+      frontmatter: {
+        title,
+        version: versionInput!.value.trim(),
+        platform: getSelectedPlatform(),
+        releasedAt,
+        summary: summaryInput!.value.trim(),
+        tags,
+        draft: draftInput!.checked,
+      },
+      body: bodyInput!.value,
+      mdx: mdxOutput!.value,
+    };
+  }
+
+  function refreshMdx(): void {
+    const title = titleInput!.value.trim();
+    const releasedAt = releasedAtInput!.value || new Date().toISOString().slice(0, 10);
+    const slug = createReleaseSlug(title, releasedAt);
+
+    slugPreview!.textContent = `${slug}.mdx`;
+    mdxOutput!.value = getMdx();
+    bodyPreview!.innerHTML = renderMarkdownPreview(bodyInput!.value);
+  }
+
+  function setStatus(message: string): void {
+    status!.textContent = message;
+  }
+
+  function refreshAuthState(): boolean {
+    const isAuthed = Boolean(readAuthSession());
+    fileInput!.disabled = !isAuthed;
+    uploadButton!.setAttribute("aria-disabled", String(!isAuthed));
+    loginLink!.href = buildLoginPath(window.location.pathname);
+    loginLink!.classList.toggle("hidden", isAuthed);
+    authStatus!.textContent = isAuthed
+      ? "로그인되어 있어 이미지 업로드를 사용할 수 있습니다."
+      : "로그인하면 이미지 업로드를 사용할 수 있습니다.";
+    return isAuthed;
+  }
+
+  async function handleImages(files: File[]): Promise<void> {
+    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+
+    if (imageFiles.length === 0) {
+      setStatus("이미지 파일만 업로드할 수 있습니다.");
+      return;
+    }
+
+    if (!refreshAuthState()) {
+      setStatus("이미지 업로드를 위해 로그인해 주세요.");
+      return;
+    }
+
+    for (const file of imageFiles) {
+      await uploadImage(file);
+    }
+  }
+
+  async function uploadImage(file: File): Promise<void> {
+    const item = document.createElement("li");
+    item.textContent = `${file.name} 변환 및 업로드 중...`;
+    uploadLog!.prepend(item);
+
+    try {
+      const uploaded = await uploadTechBlogImage(file);
+      const markdown = `\n${buildMarkdownImage({
+        fileId: uploaded.fileId,
+        alt: file.name.replace(/\.[^/.]+$/, ""),
+      })}\n`;
+      const start = bodyInput!.selectionStart ?? bodyInput!.value.length;
+      const end = bodyInput!.selectionEnd ?? start;
+      bodyInput!.value = insertTextAtRange(bodyInput!.value, markdown, start, end);
+      bodyInput!.selectionStart = bodyInput!.selectionEnd = start + markdown.length;
+      item.textContent = `${uploaded.originalName} -> ${uploaded.fileName} (${formatBytes(
+        uploaded.originalSize,
+      )} -> ${formatBytes(uploaded.optimizedSize)}) / ${uploaded.fileId}`;
+      setStatus("이미지를 업로드하고 본문에 삽입했습니다.");
+      refreshMdx();
+    } catch (error) {
+      item.textContent = `${file.name} 업로드 실패: ${error instanceof Error ? error.message : "알 수 없는 오류"}`;
+      setStatus("이미지 업로드에 실패했습니다.");
+    }
+  }
+
+  async function copyMdx(): Promise<void> {
+    await navigator.clipboard.writeText(mdxOutput!.value);
+    setStatus("MDX를 클립보드에 복사했습니다.");
+  }
+
+  function downloadMdx(): void {
+    const releasedAt = releasedAtInput!.value || new Date().toISOString().slice(0, 10);
+    const slug = createReleaseSlug(titleInput!.value.trim(), releasedAt);
+    const blob = new Blob([mdxOutput!.value], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `${slug}.mdx`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+    setStatus(`${slug}.mdx 파일을 다운로드했습니다.`);
+  }
+
+  async function saveDraft(): Promise<number | string | undefined> {
+    if (!refreshAuthState()) {
+      setStatus("임시저장을 위해 로그인해 주세요.");
+      return undefined;
+    }
+
+    const response = await saveTechBlogDraft(getDraftPayload(), draftId);
+    draftId = response.id;
+    setStatus(response.message ?? `임시저장 상태: ${response.status}`);
+    return draftId;
+  }
+
+  async function requestPublish(): Promise<void> {
+    const id = draftId ?? (await saveDraft());
+    if (!id) {
+      return;
+    }
+
+    const response = await publishTechBlogDraft(id);
+    setStatus(response.message ?? `발행 요청 상태: ${response.status}`);
+  }
+
+  function setPanelMode(mode: "preview" | "mdx"): void {
+    const isPreview = mode === "preview";
+    bodyPreview!.classList.toggle("hidden", !isPreview);
+    mdxOutput!.classList.toggle("hidden", isPreview);
+    previewTab!.setAttribute("aria-pressed", String(isPreview));
+    mdxTab!.setAttribute("aria-pressed", String(!isPreview));
+    previewTab!.classList.toggle("bg-ds-surface", isPreview);
+    previewTab!.classList.toggle("text-ds-primary-strong", isPreview);
+    previewTab!.classList.toggle("text-ds-text-muted", !isPreview);
+    mdxTab!.classList.toggle("bg-ds-surface", !isPreview);
+    mdxTab!.classList.toggle("text-ds-primary-strong", !isPreview);
+    mdxTab!.classList.toggle("text-ds-text-muted", isPreview);
+  }
+
+  function formatBytes(bytes: number): string {
+    if (bytes < 1024) {
+      return `${bytes} B`;
+    }
+
+    if (bytes < 1024 * 1024) {
+      return `${(bytes / 1024).toFixed(1)} KiB`;
+    }
+
+    return `${(bytes / 1024 / 1024).toFixed(1)} MiB`;
+  }
+
+  document.addEventListener("input", refreshMdx);
+  fileInput!.addEventListener("change", () => {
+    void handleImages(Array.from(fileInput!.files ?? []));
+    fileInput!.value = "";
+  });
+  bodyInput!.addEventListener("paste", (event) => {
+    const files = Array.from(event.clipboardData?.files ?? []);
+
+    if (files.some((file) => file.type.startsWith("image/"))) {
+      event.preventDefault();
+      void handleImages(files);
+    }
+  });
+  dropZone!.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    dropZone!.classList.add("border-ds-primary");
+  });
+  dropZone!.addEventListener("dragleave", () => {
+    dropZone!.classList.remove("border-ds-primary");
+  });
+  dropZone!.addEventListener("drop", (event) => {
+    event.preventDefault();
+    dropZone!.classList.remove("border-ds-primary");
+    void handleImages(Array.from(event.dataTransfer?.files ?? []));
+  });
+  copyButton!.addEventListener("click", () => {
+    void copyMdx();
+  });
+  downloadButton!.addEventListener("click", downloadMdx);
+  saveDraftButton!.addEventListener("click", () => {
+    void saveDraft().catch((error) => {
+      setStatus(error instanceof Error ? error.message : "임시저장에 실패했습니다.");
+    });
+  });
+  publishDraftButton!.addEventListener("click", () => {
+    void requestPublish().catch((error) => {
+      setStatus(error instanceof Error ? error.message : "발행 요청에 실패했습니다.");
+    });
+  });
+  previewTab!.addEventListener("click", () => setPanelMode("preview"));
+  mdxTab!.addEventListener("click", () => setPanelMode("mdx"));
+  setPanelMode("preview");
+  refreshMdx();
+</script>

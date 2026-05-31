@@ -1,0 +1,34 @@
+---
+type Props = {
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  align?: "left" | "center";
+  size?: "page" | "section";
+};
+
+const { eyebrow, title, description, align = "left", size = "page" } = Astro.props;
+---
+
+<header
+  class:list={[
+    "grid max-w-[780px] gap-3",
+    size === "page" ? "mb-10" : "mb-6",
+    align === "center" && "mx-auto text-center",
+  ]}
+>
+  {eyebrow && <p class="m-0 text-label-3 uppercase text-ds-primary">{eyebrow}</p>}
+  <h1
+    class:list={[
+      "m-0 text-ds-text-strong break-keep",
+      size === "page" ? "text-display-1" : "text-heading-2",
+    ]}
+  >
+    {title}
+  </h1>
+  {description && (
+    <p class:list={["m-0 max-w-[640px] text-ds-text-muted break-keep", size === "page" ? "text-body-1" : "text-body-1"]}>
+      {description}
+    </p>
+  )}
+</header>

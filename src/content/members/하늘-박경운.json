@@ -1,0 +1,26 @@
+{
+  "name": "박경운",
+  "nickname": "하늘",
+  "school": "중앙대학교",
+  "profileImageId": "haneul-park",
+  "profileImageExtension": "webp",
+  "profileEmoji": "☁️",
+  "bio": "",
+  "parts": [
+    "server"
+  ],
+  "participations": [
+    {
+      "generation": "1st",
+      "role": "Lead",
+      "team": "Server",
+      "order": 11
+    },
+    {
+      "generation": "2nd",
+      "role": "Lead",
+      "team": "Server",
+      "order": 10
+    }
+  ]
+}

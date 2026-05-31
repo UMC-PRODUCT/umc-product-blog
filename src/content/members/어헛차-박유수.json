@@ -1,0 +1,25 @@
+{
+  "name": "박유수",
+  "nickname": "어헛차",
+  "school": "숭실대학교",
+  "profileImageId": "uhutcha-park",
+  "profileImageExtension": "webp",
+  "bio": "",
+  "parts": [
+    "android"
+  ],
+  "participations": [
+    {
+      "generation": "1st",
+      "role": "Lead",
+      "team": "Android",
+      "order": 10
+    },
+    {
+      "generation": "2nd",
+      "role": "Member",
+      "team": "Android",
+      "order": 9
+    }
+  ]
+}

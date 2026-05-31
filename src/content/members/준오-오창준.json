@@ -1,0 +1,20 @@
+{
+  "name": "오창준",
+  "nickname": "준오",
+  "school": "동국대학교",
+  "profileImageId": "juno-oh",
+  "profileImageExtension": "webp",
+  "profileEmoji": "🌟",
+  "bio": "",
+  "parts": [
+    "web"
+  ],
+  "participations": [
+    {
+      "generation": "2nd",
+      "role": "Member",
+      "team": "Web",
+      "order": 26
+    }
+  ]
+}

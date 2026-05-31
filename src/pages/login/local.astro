@@ -1,0 +1,10 @@
+---
+import LoginLocalPanel from "@/components/auth/LoginLocalPanel.astro";
+import RegisterRequiredDialog from "@/components/auth/RegisterRequiredDialog.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Login" description="UMC PRODUCT 계정으로 로그인합니다." hideChrome>
+  <LoginLocalPanel variant="page" />
+  <RegisterRequiredDialog />
+</BaseLayout>
