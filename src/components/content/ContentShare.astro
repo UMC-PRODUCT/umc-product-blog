@@ -30,38 +30,247 @@ const { title, description = "" } = Astro.props;
     </svg>
     <span data-share-button-label>공유하기</span>
   </button>
+
+  <div
+    class="fixed inset-0 z-[80] hidden grid place-items-center bg-[rgba(22,25,25,0.42)] px-5 py-8"
+    role="dialog"
+    aria-modal="true"
+    aria-label="공유"
+    data-share-modal
+  >
+    <section class="relative w-full max-w-[360px] rounded-2xl bg-white p-4">
+      <button
+        type="button"
+        class="absolute right-3 top-3 inline-flex size-8 items-center justify-center rounded-full text-ds-text-muted transition-colors hover:bg-teal-gray-100 hover:text-ds-text-default"
+        data-share-close
+        aria-label="공유 모달 닫기"
+      >
+        <span class="sr-only">닫기</span>
+        <svg viewBox="0 0 24 24" class="size-5" aria-hidden="true" fill="none">
+          <path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        </svg>
+      </button>
+      <div class="grid gap-4">
+        <div class="mx-auto h-1 w-10 rounded-full bg-teal-gray-200" aria-hidden="true"></div>
+        <h2 class="text-heading-6-semibold m-0 text-center text-ds-text-strong">공유하기</h2>
+        <div class="grid gap-2">
+          <button
+            type="button"
+            class="text-body-1-medium inline-flex min-h-12 items-center justify-center rounded-[14px] bg-teal-gray-100 px-4 text-ds-text-default transition-colors hover:bg-teal-gray-150"
+            data-share-copy
+          >
+            URL 복사하기
+          </button>
+          <button
+            type="button"
+            class="text-body-1-medium inline-flex min-h-12 items-center justify-center rounded-[14px] bg-teal-500 px-4 text-white transition-colors hover:bg-teal-600"
+            data-share-kakao
+          >
+            카카오톡으로 공유하기
+          </button>
+          <button
+            type="button"
+            class="text-body-1-medium inline-flex min-h-12 items-center justify-center rounded-[14px] bg-ds-surface border border-teal-gray-200 px-4 text-ds-text-default transition-colors hover:bg-ds-hover"
+            data-share-qr-toggle
+          >
+            QR 표시
+          </button>
+        </div>
+        <div class="rounded-[14px] border border-teal-gray-200 p-3">
+          <img
+            alt="공유 링크 QR 코드"
+            class="mx-auto hidden h-[220px] w-[220px] border border-teal-gray-200"
+            data-share-qr
+            loading="lazy"
+          />
+        </div>
+      </div>
+    </section>
+  </div>
+
   <span class="sr-only" data-share-status role="status" aria-live="polite"></span>
 </section>
 
 <script>
-  const shareButtons = document.querySelectorAll<HTMLButtonElement>("[data-share-button]");
-
-  for (const button of shareButtons) {
-    const label = button.querySelector<HTMLElement>("[data-share-button-label]");
-    const status = button
-      .closest<HTMLElement>("[data-content-share]")
-      ?.querySelector<HTMLElement>("[data-share-status]");
-
-    button.addEventListener("click", async () => {
-      const previousLabel = label?.textContent ?? "공유하기";
-      const shareData = {
-        title: button.dataset.shareTitle || document.title,
-        text: button.dataset.shareText || "",
-        url: window.location.href,
+  interface ShareWindow extends Window {
+    Kakao?: {
+      isInitialized: () => boolean;
+      init: (appKey: string) => void;
+      Share: {
+        sendDefault: (options: {
+          objectType: "text" | "feed";
+          text: string;
+          link: {
+            webUrl: string;
+            mobileWebUrl: string;
+          };
+          buttons: Array<{
+            title: string;
+            link: {
+              webUrl: string;
+              mobileWebUrl: string;
+            };
+          }>;
+        }) => void;
       };
+    };
+  }
 
+  const shareRoots = document.querySelectorAll<HTMLElement>("[data-content-share]");
+  const appKey = import.meta.env.PUBLIC_KAKAO_APP_KEY as string | undefined;
+
+  const openLabel = "공유하기";
+  const qrShowLabel = "QR 표시";
+  const qrHideLabel = "QR 숨기기";
+
+  function generateQRCodeImageSrc(url: string, size = 220): string {
+    return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(url)}`;
+  }
+
+  function setStatusMessage(status: HTMLElement | null, message: string): void {
+    if (status) {
+      status.textContent = message;
+    }
+  }
+
+  function buildShareData(button: HTMLButtonElement, status: HTMLElement | null): {
+    title: string;
+    text: string;
+    url: string;
+  } {
+    return {
+      title: button.dataset.shareTitle || document.title,
+      text: button.dataset.shareText || "",
+      url: window.location.href,
+    };
+  }
+
+  async function copyShareUrl(url: string, status: HTMLElement | null): Promise<void> {
+    await navigator.clipboard.writeText(url);
+    setStatusMessage(status, "링크가 클립보드에 복사되었습니다.");
+  }
+
+  function ensureKakaoSdk(appKeyOverride: string | undefined): void {
+    const kakaoWindow = window as ShareWindow;
+
+    if (!kakaoWindow.Kakao) {
+      throw new Error("카카오 SDK가 로드되지 않았습니다.");
+    }
+
+    if (!kakaoWindow.Kakao.Share || typeof kakaoWindow.Kakao.Share.sendDefault !== "function") {
+      throw new Error("카카오 공유 기능이 지원되지 않습니다.");
+    }
+
+    if (!appKeyOverride) {
+      throw new Error("카카오 앱키가 설정되지 않았습니다.");
+    }
+
+    if (!kakaoWindow.Kakao.isInitialized()) {
+      kakaoWindow.Kakao.init(appKeyOverride);
+    }
+  }
+
+  function shareWithKakao(data: { title: string; text: string; url: string }, status: HTMLElement | null): void {
+    const kakaoWindow = window as ShareWindow;
+    ensureKakaoSdk(appKey);
+    kakaoWindow.Kakao!.Share.sendDefault({
+      objectType: "text",
+      text: data.text || data.title,
+      link: {
+        webUrl: data.url,
+        mobileWebUrl: data.url,
+      },
+      buttons: [
+        {
+          title: "내용 보기",
+          link: {
+            webUrl: data.url,
+            mobileWebUrl: data.url,
+          },
+        },
+      ],
+    });
+    setStatusMessage(status, "카카오톡 공유 화면을 열었습니다.");
+  }
+
+  for (const root of shareRoots) {
+    const button = root.querySelector<HTMLButtonElement>("[data-share-button]");
+    const label = button?.querySelector<HTMLElement>("[data-share-button-label]");
+    const status = root.querySelector<HTMLElement>("[data-share-status]");
+    const modal = root.querySelector<HTMLElement>("[data-share-modal]");
+    const closeButton = root.querySelector<HTMLButtonElement>("[data-share-close]");
+    const copyButton = root.querySelector<HTMLButtonElement>("[data-share-copy]");
+    const kakaoButton = root.querySelector<HTMLButtonElement>("[data-share-kakao]");
+    const qrToggleButton = root.querySelector<HTMLButtonElement>("[data-share-qr-toggle]");
+    const qrImage = root.querySelector<HTMLImageElement>("[data-share-qr]");
+
+    if (!button || !modal || !closeButton || !copyButton || !kakaoButton || !qrToggleButton || !qrImage) {
+      continue;
+    }
+
+    const previousLabel = label?.textContent ?? openLabel;
+    let qrVisible = false;
+    let onEscapeKey: ((event: KeyboardEvent) => void) | null = null;
+
+    function showModal(): void {
+      const shareData = buildShareData(button, status);
+      modal.classList.remove("hidden");
+      setStatusMessage(status, `${shareData.title}을(를) 공유합니다.`);
+      closeButton.focus();
+      onEscapeKey = (event): void => {
+        if (event.key === "Escape") {
+          hideModal();
+        }
+      };
+      document.addEventListener("keydown", onEscapeKey);
+      if (qrVisible) {
+        qrImage.src = generateQRCodeImageSrc(shareData.url, 220);
+      }
+    }
+
+    function hideModal(): void {
+      modal.classList.add("hidden");
+      if (onEscapeKey) {
+        document.removeEventListener("keydown", onEscapeKey);
+        onEscapeKey = null;
+      }
+      setStatusMessage(status, "");
+    }
+
+    function updateQrVisibility(): void {
+      const shareData = buildShareData(button, status);
+      qrVisible = !qrVisible;
+      if (qrVisible) {
+        qrImage.src = generateQRCodeImageSrc(shareData.url, 220);
+        qrImage.classList.remove("hidden");
+        qrToggleButton.textContent = qrHideLabel;
+      } else {
+        qrImage.classList.add("hidden");
+        qrImage.removeAttribute("src");
+        qrToggleButton.textContent = qrShowLabel;
+      }
+    }
+
+    button.addEventListener("click", () => {
+      if (status) {
+        status.textContent = "";
+      }
+      showModal();
+    });
+
+    closeButton.addEventListener("click", hideModal);
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        hideModal();
+      }
+    });
+
+    copyButton.addEventListener("click", async () => {
+      const shareData = buildShareData(button, status);
       try {
-        if (navigator.share) {
-          await navigator.share(shareData);
-          return;
-        }
-
-        await navigator.clipboard.writeText(shareData.url);
+        await copyShareUrl(shareData.url, status);
         if (label) {
-          label.textContent = "링크 복사됨";
-        }
-        if (status) {
-          status.textContent = "링크가 복사되었습니다.";
+          label.textContent = "복사됨";
         }
         window.setTimeout(() => {
           if (label) {
@@ -69,20 +278,32 @@ const { title, description = "" } = Astro.props;
           }
         }, 1600);
       } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError") {
+        if (error instanceof DOMException && error.name === "NotAllowedError") {
+          setStatusMessage(status, "클립보드 접근이 거부되었습니다.");
           return;
         }
-        if (label) {
-          label.textContent = "복사 실패";
-        }
-        if (status) {
-          status.textContent = "링크 복사에 실패했습니다.";
-        }
-        window.setTimeout(() => {
-          if (label) {
-            label.textContent = previousLabel;
-          }
-        }, 1600);
+        setStatusMessage(status, "클립보드 복사에 실패했습니다.");
+      }
+    });
+
+    kakaoButton.addEventListener("click", () => {
+      try {
+        const shareData = buildShareData(button, status);
+        shareWithKakao(shareData, status);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "카카오톡 공유를 시작하지 못했습니다.";
+        setStatusMessage(status, message);
+      }
+    });
+
+    qrToggleButton.addEventListener("click", () => {
+      updateQrVisibility();
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!modal.classList.contains("hidden") && !root.contains(event.target as Node)) {
+        hideModal();
       }
     });
   }
