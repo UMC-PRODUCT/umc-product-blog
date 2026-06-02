@@ -1,5 +1,6 @@
 ---
 import LoginModal from "@/components/auth/LoginModal.astro";
+import ActionModal from "@/components/ui/ActionModal.astro";
 import type { ContentRef } from "@/lib/content-interactions";
 
 type Props = ContentRef;
@@ -76,6 +77,17 @@ const commentPlaceholder =
   <div class="mt-2 grid gap-3.5" data-comments-list>
     <p class="text-body-2-regular text-teal-gray-500">댓글을 불러오고 있습니다.</p>
   </div>
+
+  <ActionModal
+    dataAttribute="data-comment-result-modal"
+    size="small"
+    title="완료"
+    description="작업이 완료되었어요."
+    primaryLabel="확인"
+    primaryAttrs={{
+      "data-comment-result-close": true,
+    }}
+  />
 </section>
 
 <LoginModal />
@@ -96,8 +108,11 @@ const commentPlaceholder =
     applyOptimisticLike,
     countComments,
     createComment,
+    deleteComment,
     getComments,
     toggleCommentLike,
+    updateComment,
+    type CommentPage,
     type ContentRef,
     type InteractionAuthor,
     type TechBlogComment,
@@ -105,6 +120,12 @@ const commentPlaceholder =
   import { generateRandomNickname } from "@/lib/random-nickname";
   import { showToast } from "@/lib/ui/toast";
 
+  type CommentsState = CommentPage & {
+    loadingMore: boolean;
+  };
+
+  const COMMENT_PAGE_SIZE = 20;
+  const COMMENT_SORT = "createdAt,desc";
   const COMMENT_EMPTY_CLASS = "text-body-2-regular text-teal-gray-500";
   const COMMENT_ITEM_CLASS = "grid gap-3 rounded-[20px] bg-teal-gray-50 p-5";
   const COMMENT_REPLY_CLASS = "ml-6 rounded-[18px] bg-teal-gray-100";
@@ -115,12 +136,21 @@ const commentPlaceholder =
   const COMMENT_ACTIONS_CLASS = "flex items-center gap-3";
   const COMMENT_ACTION_CLASS = "text-caption-2-medium text-teal-gray-600 hover:text-teal-600";
   const COMMENT_REPLY_FORM_CLASS = "mt-1 grid gap-3";
+  const COMMENT_EDIT_FORM_CLASS = "mt-1 grid gap-3";
+  const COMMENT_EDIT_ACTIONS_CLASS = "flex items-center justify-end gap-2";
   const COMMENT_TEXTAREA_CLASS =
     "text-body-2-regular min-h-[132px] resize-y rounded-[10px] border border-teal-gray-200 bg-white p-4 text-teal-gray-900 outline-none transition-colors placeholder:text-teal-gray-400 focus:border-teal-400 disabled:bg-teal-gray-50 disabled:text-teal-gray-400";
   const COMMENT_SUBMIT_CLASS =
     "text-label-2-medium inline-flex min-h-11 items-center justify-center rounded-[10px] bg-teal-300 px-4 text-white transition-colors hover:bg-teal-400 disabled:cursor-not-allowed disabled:opacity-55";
   const COMMENT_SUBMIT_ACTIVE_CLASS =
     "text-label-2-medium inline-flex min-h-11 items-center justify-center rounded-[10px] bg-teal-500 px-4 text-white transition-colors hover:bg-teal-600 disabled:cursor-not-allowed disabled:opacity-55";
+  const COMMENT_SECONDARY_BUTTON_CLASS =
+    "text-label-2-medium inline-flex min-h-10 items-center justify-center rounded-[10px] bg-teal-gray-100 px-3.5 text-teal-gray-700 transition-colors hover:bg-teal-gray-150";
+  const COMMENT_LOAD_MORE_CLASS =
+    "text-label-2-medium inline-flex min-h-10 items-center justify-center rounded-[999px] bg-teal-gray-100 px-5 text-teal-gray-700 transition-colors hover:bg-teal-gray-150 disabled:cursor-not-allowed disabled:opacity-55";
+  const COMMENT_EDIT_SUCCESS_MESSAGE = "댓글이 수정되었습니다.";
+  const COMMENT_DELETE_SUCCESS_MESSAGE = "댓글이 삭제되었습니다.";
+  const commentsState = new WeakMap<HTMLElement, CommentsState>();
 
   function readRef(root: HTMLElement): ContentRef {
     return {
@@ -170,6 +200,17 @@ const commentPlaceholder =
     return getAuthorName(author).trim().charAt(0).toUpperCase() || "M";
   }
 
+  function isDeletedComment(comment: TechBlogComment): boolean {
+    return comment.deletionType !== "NONE";
+  }
+
+  function validateCommentContent(content: string): string | null {
+    const trimmed = content.trim();
+    if (!trimmed) return "댓글 내용을 입력해 주세요.";
+    if (trimmed.length > 1000) return "댓글은 1000자 이하로 입력해 주세요.";
+    return null;
+  }
+
   async function refreshAuthState(root: HTMLElement): Promise<void> {
     const isAuthed = Boolean(readAuthSession());
     const textarea = root.querySelector<HTMLTextAreaElement>("[data-comment-input]");
@@ -217,14 +258,14 @@ const commentPlaceholder =
     }
   }
 
-  function renderComments(root: HTMLElement, comments: TechBlogComment[]): void {
+  function renderComments(root: HTMLElement, state: CommentsState): void {
     const list = root.querySelector<HTMLElement>("[data-comments-list]");
     const count = root.querySelector<HTMLElement>("[data-comments-count]");
     list!.innerHTML = "";
     setLoadError(root, "");
-    if (count) count.textContent = String(countComments(comments));
+    if (count) count.textContent = String(countComments(state.content));
 
-    if (comments.length === 0) {
+    if (state.content.length === 0) {
       const empty = document.createElement("p");
       empty.className = COMMENT_EMPTY_CLASS;
       empty.textContent = "아직 댓글이 없습니다.";
@@ -232,54 +273,104 @@ const commentPlaceholder =
       return;
     }
 
-    for (const comment of comments) {
+    for (const comment of state.content) {
       list!.append(renderComment(root, comment, false));
       for (const reply of comment.replies) {
         list!.append(renderComment(root, reply, true));
       }
     }
+
+    if (state.hasNext) {
+      list!.append(renderLoadMoreButton(root, state));
+    }
   }
 
   function renderComment(root: HTMLElement, comment: TechBlogComment, isReply: boolean): HTMLElement {
+    const isDeleted = isDeletedComment(comment);
     const item = document.createElement("article");
     item.className = isReply ? `${COMMENT_ITEM_CLASS} ${COMMENT_REPLY_CLASS}` : COMMENT_ITEM_CLASS;
 
-    const header = document.createElement("div");
-    header.className = COMMENT_HEADER_CLASS;
+    if (!isDeleted) {
+      const header = document.createElement("div");
+      header.className = COMMENT_HEADER_CLASS;
 
-    const avatar = document.createElement("div");
-    avatar.className = COMMENT_AVATAR_CLASS;
-    setAvatar(avatar, comment.author?.profileImageUrl ?? null, getAuthorInitial(comment.author));
+      const avatar = document.createElement("div");
+      avatar.className = COMMENT_AVATAR_CLASS;
+      setAvatar(avatar, comment.author?.profileImageUrl ?? null, getAuthorInitial(comment.author));
 
-    const author = document.createElement("strong");
-    author.className = COMMENT_AUTHOR_CLASS;
-    author.textContent = getAuthorName(comment.author);
-    header.append(avatar, author);
-
-    const body = document.createElement("p");
-    body.className = COMMENT_BODY_CLASS;
-    body.textContent = comment.content;
-
-    const actions = document.createElement("div");
-    actions.className = COMMENT_ACTIONS_CLASS;
-    const like = document.createElement("button");
-    like.type = "button";
-    like.className = COMMENT_ACTION_CLASS;
-    like.textContent = `${comment.likedByMe ? "♥" : "♡"} ${comment.likeCount}`;
-    like.addEventListener("click", () => handleCommentLike(root, comment, like));
-    actions.append(like);
-
-    if (!isReply) {
-      const reply = document.createElement("button");
-      reply.type = "button";
-      reply.className = COMMENT_ACTION_CLASS;
-      reply.textContent = "답글";
-      reply.addEventListener("click", () => toggleReplyForm(root, item, comment.id));
-      actions.append(reply);
+      const author = document.createElement("strong");
+      author.className = COMMENT_AUTHOR_CLASS;
+      author.textContent = getAuthorName(comment.author);
+      header.append(avatar, author);
+      item.append(header);
     }
 
-    item.append(header, body, actions);
+    const body = document.createElement("p");
+    body.className = isDeleted ? `${COMMENT_BODY_CLASS} text-teal-gray-500` : COMMENT_BODY_CLASS;
+    body.textContent = comment.content;
+    item.append(body);
+
+    if (!isDeleted) {
+      const actions = document.createElement("div");
+      actions.className = COMMENT_ACTIONS_CLASS;
+      actions.dataset.commentActions = "true";
+
+      const like = document.createElement("button");
+      like.type = "button";
+      like.className = COMMENT_ACTION_CLASS;
+      like.textContent = `${comment.likedByMe ? "♥" : "♡"} ${comment.likeCount}`;
+      like.addEventListener("click", () => handleCommentLike(root, comment, like));
+      actions.append(like);
+
+      if (!isReply && !isDeleted && comment.canReply) {
+        const reply = document.createElement("button");
+        reply.type = "button";
+        reply.className = COMMENT_ACTION_CLASS;
+        reply.textContent = "답글";
+        reply.addEventListener("click", () => toggleReplyForm(root, item, comment.id));
+        actions.append(reply);
+      }
+
+      if (comment.canEdit) {
+        const edit = document.createElement("button");
+        edit.type = "button";
+        edit.className = COMMENT_ACTION_CLASS;
+        edit.textContent = "수정";
+        edit.addEventListener("click", () => toggleEditForm(root, item, comment, body));
+        actions.append(edit);
+      }
+
+      if (comment.canDelete) {
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = COMMENT_ACTION_CLASS;
+        remove.textContent = "삭제";
+        remove.addEventListener("click", () => {
+          void handleDeleteComment(root, comment);
+        });
+        actions.append(remove);
+      }
+
+      item.append(actions);
+    }
+
     return item;
+  }
+
+  function renderLoadMoreButton(root: HTMLElement, state: CommentsState): HTMLElement {
+    const wrapper = document.createElement("div");
+    wrapper.className = "flex justify-center pt-1";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = COMMENT_LOAD_MORE_CLASS;
+    button.disabled = state.loadingMore;
+    button.textContent = state.loadingMore ? "불러오는 중..." : "더보기";
+    button.setAttribute("data-comments-load-more", "true");
+    button.addEventListener("click", () => {
+      void loadMoreComments(root);
+    });
+    wrapper.append(button);
+    return wrapper;
   }
 
   function requireLogin(): boolean {
@@ -313,11 +404,53 @@ const commentPlaceholder =
     comment.likeCount = optimistic.likeCount;
     button.textContent = `${comment.likedByMe ? "♥" : "♡"} ${comment.likeCount}`;
 
-    void toggleCommentLike(readRef(root), comment.id).catch(() => {
-      comment.likedByMe = previous.likedByMe;
-      comment.likeCount = previous.likeCount;
-      button.textContent = `${comment.likedByMe ? "♥" : "♡"} ${comment.likeCount}`;
-      showToast({ message: "댓글 좋아요 변경에 실패했습니다.", variant: "error" });
+    void toggleCommentLike(readRef(root), comment.id)
+      .then((next) => {
+        comment.likedByMe = next.likedByMe;
+        comment.likeCount = next.likeCount;
+        button.textContent = `${comment.likedByMe ? "♥" : "♡"} ${comment.likeCount}`;
+      })
+      .catch(() => {
+        comment.likedByMe = previous.likedByMe;
+        comment.likeCount = previous.likeCount;
+        button.textContent = `${comment.likedByMe ? "♥" : "♡"} ${comment.likeCount}`;
+        showToast({ message: "댓글 좋아요 변경에 실패했습니다.", variant: "error" });
+      });
+  }
+
+  function closeResultModal(modal: HTMLElement): void {
+    modal.classList.add("hidden");
+  }
+
+  function openResultModal(root: HTMLElement, title: string, description: string): void {
+    const modal = root.querySelector<HTMLElement>('[data-comment-result-modal]');
+    const modalTitle = modal?.querySelector<HTMLHeadingElement>("h2");
+    const modalDescription = modal?.querySelector<HTMLParagraphElement>("p");
+    if (!modal || !modalTitle || !modalDescription) {
+      return;
+    }
+
+    modalTitle.textContent = title;
+    modalDescription.textContent = description;
+    modal.classList.remove("hidden");
+
+    const closeButton = modal.querySelector<HTMLElement>("[data-comment-result-close]");
+    closeButton?.focus();
+  }
+
+  function setupResultModal(root: HTMLElement): void {
+    const modal = root.querySelector<HTMLElement>('[data-comment-result-modal]');
+    if (!modal) return;
+
+    const closeButton = modal.querySelector<HTMLElement>("[data-comment-result-close]");
+    closeButton?.addEventListener("click", () => {
+      closeResultModal(modal);
+    });
+
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        closeResultModal(modal);
+      }
     });
   }
 
@@ -346,18 +479,117 @@ const commentPlaceholder =
     item.append(form);
   }
 
+  function toggleEditForm(
+    root: HTMLElement,
+    item: HTMLElement,
+    comment: TechBlogComment,
+    body: HTMLElement,
+  ): void {
+    const existing = item.querySelector<HTMLFormElement>("[data-comment-edit-form]");
+    const actions = item.querySelector<HTMLElement>("[data-comment-actions]");
+    if (existing) {
+      existing.remove();
+      body.hidden = false;
+      if (actions) actions.hidden = false;
+      return;
+    }
+
+    body.hidden = true;
+    if (actions) actions.hidden = true;
+
+    const form = document.createElement("form");
+    form.className = COMMENT_EDIT_FORM_CLASS;
+    form.dataset.commentEditForm = "true";
+
+    const textarea = document.createElement("textarea");
+    textarea.className = COMMENT_TEXTAREA_CLASS;
+    textarea.maxLength = 1000;
+    textarea.value = comment.content;
+
+    const controls = document.createElement("div");
+    controls.className = COMMENT_EDIT_ACTIONS_CLASS;
+
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.className = COMMENT_SECONDARY_BUTTON_CLASS;
+    cancel.textContent = "취소";
+    cancel.addEventListener("click", () => {
+      form.remove();
+      body.hidden = false;
+      if (actions) actions.hidden = false;
+    });
+
+    const save = document.createElement("button");
+    save.type = "submit";
+    save.className = COMMENT_SUBMIT_CLASS;
+    save.textContent = "저장";
+
+    controls.append(cancel, save);
+    form.append(textarea, controls);
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      void submitCommentEdit(root, comment.id, textarea.value, save);
+    });
+
+    item.append(form);
+    textarea.focus();
+  }
+
+  async function submitCommentEdit(
+    root: HTMLElement,
+    commentId: string | number,
+    content: string,
+    submitButton: HTMLButtonElement,
+  ): Promise<void> {
+    if (!window.confirm("댓글을 수정할까요?")) return;
+
+    const validationMessage = validateCommentContent(content);
+    if (validationMessage) {
+      showToast({ message: validationMessage, variant: "error" });
+      return;
+    }
+
+    submitButton.disabled = true;
+    try {
+      await updateComment(readRef(root), commentId, { content: content.trim() });
+      await reloadComments(root);
+      openResultModal(root, "댓글 수정 완료", COMMENT_EDIT_SUCCESS_MESSAGE);
+    } catch {
+      showToast({ message: "댓글 수정에 실패했어요.", variant: "error" });
+    } finally {
+      submitButton.disabled = false;
+    }
+  }
+
+  async function handleDeleteComment(root: HTMLElement, comment: TechBlogComment): Promise<void> {
+    if (!window.confirm("댓글을 삭제할까요?")) return;
+
+    try {
+      await deleteComment(readRef(root), comment.id);
+      await reloadComments(root);
+      openResultModal(root, "댓글 삭제 완료", COMMENT_DELETE_SUCCESS_MESSAGE);
+    } catch {
+      showToast({ message: "댓글 삭제에 실패했어요.", variant: "error" });
+    }
+  }
+
   async function submitComment(
     root: HTMLElement,
     content: string,
     parentCommentId?: string | number,
   ): Promise<boolean> {
-    const trimmed = content.trim();
-    if (!trimmed) {
+    const validationMessage = validateCommentContent(content);
+    if (validationMessage) {
       setStatus(root, "");
-      showToast({ message: "댓글 내용을 입력해 주세요.", variant: "error" });
+      if (validationMessage === "댓글 내용을 입력해 주세요.") {
+        showToast({ message: "댓글 내용을 입력해 주세요.", variant: "error" });
+        return false;
+      }
+      showToast({ message: validationMessage, variant: "error" });
       return false;
     }
 
+    const trimmed = content.trim();
     try {
       await createComment(readRef(root), {
         content: trimmed,
@@ -366,7 +598,7 @@ const commentPlaceholder =
         nickname: readAuthSession() ? undefined : readGuestNickname(root),
       });
       await reloadComments(root);
-      setStatus(root, parentCommentId ? "답글을 등록했습니다." : "댓글을 등록했습니다.");
+      setStatus(root, "");
       return true;
     } catch {
       showToast({
@@ -378,7 +610,54 @@ const commentPlaceholder =
   }
 
   async function reloadComments(root: HTMLElement): Promise<void> {
-    renderComments(root, await getComments(readRef(root)));
+    const page = await getComments(readRef(root), {
+      size: COMMENT_PAGE_SIZE,
+      sort: COMMENT_SORT,
+    });
+    const nextState: CommentsState = {
+      ...page,
+      loadingMore: false,
+    };
+    commentsState.set(root, nextState);
+    renderComments(root, nextState);
+  }
+
+  async function loadMoreComments(root: HTMLElement): Promise<void> {
+    const currentState = commentsState.get(root);
+    if (!currentState?.hasNext || currentState.loadingMore || currentState.nextCursor === null) {
+      return;
+    }
+
+    const loadingState: CommentsState = {
+      ...currentState,
+      loadingMore: true,
+    };
+    commentsState.set(root, loadingState);
+    renderComments(root, loadingState);
+
+    try {
+      const page = await getComments(readRef(root), {
+        cursor: loadingState.nextCursor,
+        size: COMMENT_PAGE_SIZE,
+        sort: COMMENT_SORT,
+      });
+      const nextState: CommentsState = {
+        content: [...loadingState.content, ...page.content],
+        nextCursor: page.nextCursor,
+        hasNext: page.hasNext,
+        loadingMore: false,
+      };
+      commentsState.set(root, nextState);
+      renderComments(root, nextState);
+    } catch {
+      const restoredState: CommentsState = {
+        ...currentState,
+        loadingMore: false,
+      };
+      commentsState.set(root, restoredState);
+      renderComments(root, restoredState);
+      showToast({ message: "댓글을 더 불러오지 못했습니다.", variant: "error" });
+    }
   }
 
   for (const root of document.querySelectorAll<HTMLElement>("[data-comments-panel]")) {
@@ -387,6 +666,7 @@ const commentPlaceholder =
     const guestNickname = root.querySelector<HTMLInputElement>("[data-comment-guest-nickname]");
     const guestNicknameRandom = root.querySelector<HTMLButtonElement>("[data-comment-guest-nickname-random]");
     void refreshAuthState(root);
+    setupResultModal(root);
 
     window.addEventListener(AUTH_SESSION_CHANGE_EVENT, () => {
       void refreshAuthState(root);
