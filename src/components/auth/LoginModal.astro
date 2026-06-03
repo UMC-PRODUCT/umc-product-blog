@@ -59,6 +59,9 @@ import AuthRegisterNotice from "./AuthRegisterNotice.astro";
     root.addEventListener("click", (event) => {
       if (event.target === root) closeModal(root);
     });
+    root
+      .querySelector<HTMLButtonElement>("[data-login-modal-close]")
+      ?.addEventListener("click", () => closeModal(root));
 
     window.addEventListener("umc-open-login-modal", () => openModal(root, "oauth"));
     window.addEventListener("umc-login-modal-view", (event) => {

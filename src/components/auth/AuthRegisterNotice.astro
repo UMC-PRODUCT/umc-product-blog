@@ -1,6 +1,9 @@
 ---
 import ActionModalContent from "@/components/ui/ActionModalContent.astro";
-import { REGISTER_REQUIRED_NOTICE } from "@/lib/auth/registerRequiredNotice";
+import {
+  REGISTER_REQUIRED_LOGIN_MODAL_CLOSE_ATTRS,
+  REGISTER_REQUIRED_NOTICE,
+} from "@/lib/auth/registerRequiredNotice";
 
 const notice = {
   title: REGISTER_REQUIRED_NOTICE.title,
@@ -8,6 +11,8 @@ const notice = {
   type: REGISTER_REQUIRED_NOTICE.type,
   primaryLabel: REGISTER_REQUIRED_NOTICE.primaryLabel,
   primaryHref: REGISTER_REQUIRED_NOTICE.primaryHref,
+  secondaryLabel: REGISTER_REQUIRED_NOTICE.secondaryLabel,
+  secondaryAttrs: REGISTER_REQUIRED_LOGIN_MODAL_CLOSE_ATTRS,
 };
 ---
 
