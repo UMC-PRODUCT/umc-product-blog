@@ -41,128 +41,115 @@ const shareButtonClass =
     aria-label="공유"
     data-share-modal
   >
-    <section class="relative w-full max-w-[360px] rounded-2xl bg-white p-4">
-      <button
-        type="button"
-        class="absolute right-3 top-3 inline-flex size-8 items-center justify-center rounded-full text-ds-text-muted transition-colors hover:bg-teal-gray-100 hover:text-ds-text-default"
-        data-share-close
-        aria-label="공유 모달 닫기"
+    <section class="relative w-[min(92vw,360px)] max-w-[360px] rounded-[22px] bg-white p-5 shadow-[0_16px_40px_rgba(17,24,39,0.18)] sm:p-6">
+      <div class="space-y-1.5">
+        <h2 class="text-[1.25rem] leading-tight font-semibold tracking-[-0.01em] text-[#111827]">
+          공유하기
+        </h2>
+        <p class="text-sm leading-6 text-[#6B7280]">
+          링크를 복사하거나 카카오톡, QR로 공유하세요.
+        </p>
+      </div>
+      <div
+        class="mt-4 rounded-[16px] border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-3"
+        data-share-qr-wrap
       >
-        <span class="sr-only">닫기</span>
-        <svg viewBox="0 0 24 24" class="size-5" aria-hidden="true" fill="none">
-          <path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-        </svg>
-      </button>
-      <div class="grid gap-4">
-        <div class="mx-auto h-1 w-10 rounded-full bg-teal-gray-200" aria-hidden="true"></div>
-        <h2 class="text-heading-6-semibold m-0 text-center text-ds-text-strong">공유하기</h2>
-        <div class="grid grid-cols-3 gap-2">
-          <button
-            type="button"
-            class="inline-flex min-h-12 items-center justify-center rounded-[14px] bg-teal-gray-100 px-4 transition-colors hover:bg-teal-gray-150"
-            data-share-copy
-            aria-label="URL 복사하기"
-          >
-            <span class="sr-only">URL 복사하기</span>
-            <svg aria-hidden="true" viewBox="0 0 24 24" class="size-5" fill="none">
-              <path
-                d="M14 3.5h-6A2.5 2.5 0 0 0 5.5 6v1M10 3.5h4a2.5 2.5 0 0 1 2.5 2.5v13A2.5 2.5 0 0 1 14.5 21.5h-7A2.5 2.5 0 0 1 5 19V6A2.5 2.5 0 0 1 7.5 3.5H8"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.6"
-              />
-            </svg>
-          </button>
-          <button
-            type="button"
-            class="inline-flex min-h-12 items-center justify-center rounded-[14px] bg-[#fae100] px-4 text-[#1a1711] transition-colors hover:bg-[#F4DD2B]"
-            data-share-kakao
-            aria-label="카카오톡으로 공유하기"
-          >
-            <span class="sr-only">카카오톡으로 공유하기</span>
-            <svg aria-hidden="true" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-              <path
-                fill-rule="evenodd"
-                clip-rule="evenodd"
-                d="M10 1.5C5.15 1.5 1.25 4.59 1.25 8.45c0 2.24 1.38 4.24 3.5 5.5l-1 3.58A.63.63 0 0 0 4.5 18.2l3.98-2.76a.6.6 0 0 1 .53-.07C10.26 15.5 14.5 12.53 14.5 8.45 14.5 4.59 10.85 1.5 10 1.5Z"
-              />
-            </svg>
-          </button>
-          <button
-            type="button"
-            class="inline-flex min-h-12 items-center justify-center rounded-[14px] bg-ds-surface border border-teal-gray-200 px-4 text-ds-text-default transition-colors hover:bg-ds-hover"
-            data-share-qr-toggle
-            aria-label="QR 표시"
-          >
-            <span class="sr-only" data-share-qr-label>QR 표시</span>
-            <svg aria-hidden="true" viewBox="0 0 24 24" class="size-5" fill="none">
-              <path
-                d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.6"
-              />
-              <path
-                d="M10.5 10.5h3m2 0h3m-8 0h-1.5M13.5 5.5H15m-1.5 12.5H15m-1.5-3h3M4.5 13.5H6m-1.5 0h-1m14.5 0h1m-1-6h1m-3-1v-2m-10 2V4.5m6 0V4m0 0h2m-2 0H8m-6.5 3h4"
-                stroke="currentColor"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.6"
-              />
-            </svg>
-          </button>
+        <div class="text-[0.8125rem] font-medium leading-5 text-[#111827]">QR 코드로 공유</div>
+        <p class="mt-0.5 text-xs leading-5 text-[#6B7280]">
+          상대방이 스캔하면 바로 접속할 수 있어요.
+        </p>
+        <div class="mt-2 flex justify-center">
+          <div class="relative grid size-[152px] place-items-center rounded-[12px] bg-white p-2">
+            <span
+              class="absolute inset-2 grid place-items-center rounded-[10px] bg-[#F3F4F6] text-xs font-medium text-[#6B7280]"
+              data-share-qr-loading
+            >
+              QR 생성 중
+            </span>
+            <img
+              alt="공유 링크 QR 코드"
+              class="relative h-[136px] w-[136px] opacity-0 transition-opacity duration-150"
+              data-share-qr
+              loading="lazy"
+            />
+          </div>
         </div>
-        <div class="rounded-[14px] border border-teal-gray-200 p-3">
-          <img
-            alt="공유 링크 QR 코드"
-            class="mx-auto hidden h-[220px] w-[220px] border border-teal-gray-200"
-            data-share-qr
-            loading="lazy"
-          />
-        </div>
+      </div>
+      <div class="mt-4 space-y-3">
+        <button
+          type="button"
+          class="flex h-12 w-full items-center justify-center rounded-[14px] bg-[#FEE500] px-4 text-[1rem] font-semibold leading-6 text-[#111827] transition-colors hover:bg-[#F5D800] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FEE500] focus-visible:ring-offset-2"
+          data-share-kakao
+          aria-label="카카오톡으로 공유하기"
+        >
+          <span>카카오톡으로 공유하기</span>
+        </button>
+        <button
+          type="button"
+          class="flex h-12 w-full items-center justify-center rounded-[14px] border border-[#E5E7EB] bg-white px-4 text-[1rem] font-medium leading-6 text-[#111827] transition-colors hover:bg-[#F9FAFB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111827] focus-visible:ring-offset-2"
+          data-share-copy
+          aria-label="URL 복사하기"
+        >
+          <span>URL 복사하기</span>
+        </button>
       </div>
     </section>
   </div>
 
   <span class="sr-only" data-share-status role="status" aria-live="polite"></span>
+  <div
+    class="pointer-events-none fixed inset-x-0 bottom-5 z-[95] hidden px-4 transition-opacity"
+    data-share-toast
+    role="status"
+    aria-live="polite"
+  >
+    <div
+      class="mx-auto w-full max-w-[360px] rounded-[14px] bg-ds-text-strong px-4 py-3 text-sm text-white shadow-lg"
+      data-share-toast-text
+    >
+    </div>
+  </div>
 </section>
 
 <script>
-  interface ShareWindow extends Window {
-    Kakao?: {
-      isInitialized: () => boolean;
-      init: (appKey: string) => void;
-      Share: {
-        sendDefault: (options: {
-          objectType: "text" | "feed";
-          text: string;
+  type KakaoShareSdk = {
+    isInitialized: () => boolean;
+    init: (appKey: string) => void;
+    Share?: {
+      sendDefault: (options: {
+        objectType: "text" | "feed";
+        text: string;
+        link: {
+          webUrl: string;
+          mobileWebUrl: string;
+        };
+        buttons: Array<{
+          title: string;
           link: {
             webUrl: string;
             mobileWebUrl: string;
           };
-          buttons: Array<{
-            title: string;
-            link: {
-              webUrl: string;
-              mobileWebUrl: string;
-            };
-          }>;
-        }) => void;
-      };
+        }>;
+      }) => void;
     };
-  }
+  };
+
+  type ShareWindow = {
+    Kakao?: KakaoShareSdk;
+  };
+
+  type ShareData = {
+    title: string;
+    text: string;
+    url: string;
+  };
 
   const shareRoots = document.querySelectorAll<HTMLElement>("[data-content-share]");
   const appKey = import.meta.env.PUBLIC_KAKAO_APP_KEY as string | undefined;
 
-  const openLabel = "공유하기";
-  const qrLabelSelector = "[data-share-qr-label]";
-  const qrShowLabel = "QR 표시";
-  const qrHideLabel = "QR 숨기기";
+  let toastTimeoutId: number | null = null;
 
-  function generateQRCodeImageSrc(url: string, size = 220): string {
+  function generateQRCodeImageSrc(url: string, size = 136): string {
     return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(url)}`;
   }
 
@@ -172,11 +159,24 @@ const shareButtonClass =
     }
   }
 
-  function buildShareData(button: HTMLButtonElement, status: HTMLElement | null): {
-    title: string;
-    text: string;
-    url: string;
-  } {
+  function showToast(toastWrap: HTMLElement | null, toastText: HTMLElement | null, message: string): void {
+    if (!toastWrap || !toastText) {
+      return;
+    }
+
+    toastText.textContent = message;
+    toastWrap.classList.remove("hidden");
+
+    if (toastTimeoutId !== null) {
+      window.clearTimeout(toastTimeoutId);
+    }
+    toastTimeoutId = window.setTimeout(() => {
+      toastWrap.classList.add("hidden");
+      toastTimeoutId = null;
+    }, 1800);
+  }
+
+  function buildShareData(button: HTMLButtonElement): ShareData {
     return {
       title: button.dataset.shareTitle || document.title,
       text: button.dataset.shareText || "",
@@ -189,14 +189,18 @@ const shareButtonClass =
     setStatusMessage(status, "링크가 클립보드에 복사되었습니다.");
   }
 
-  function ensureKakaoSdk(appKeyOverride: string | undefined): void {
-    const kakaoWindow = window as ShareWindow;
+  function getKakaoSdk(): KakaoShareSdk | undefined {
+    return (window as unknown as ShareWindow).Kakao;
+  }
 
-    if (!kakaoWindow.Kakao) {
+  function ensureKakaoSdk(appKeyOverride: string | undefined): void {
+    const kakaoSdk = getKakaoSdk();
+
+    if (!kakaoSdk) {
       throw new Error("카카오 SDK가 로드되지 않았습니다.");
     }
 
-    if (!kakaoWindow.Kakao.Share || typeof kakaoWindow.Kakao.Share.sendDefault !== "function") {
+    if (!kakaoSdk.Share || typeof kakaoSdk.Share.sendDefault !== "function") {
       throw new Error("카카오 공유 기능이 지원되지 않습니다.");
     }
 
@@ -204,15 +208,14 @@ const shareButtonClass =
       throw new Error("카카오 앱키가 설정되지 않았습니다.");
     }
 
-    if (!kakaoWindow.Kakao.isInitialized()) {
-      kakaoWindow.Kakao.init(appKeyOverride);
+    if (!kakaoSdk.isInitialized()) {
+      kakaoSdk.init(appKeyOverride);
     }
   }
 
-  function shareWithKakao(data: { title: string; text: string; url: string }, status: HTMLElement | null): void {
-    const kakaoWindow = window as ShareWindow;
+  function shareWithKakao(data: ShareData, status: HTMLElement | null): void {
     ensureKakaoSdk(appKey);
-    kakaoWindow.Kakao!.Share.sendDefault({
+    getKakaoSdk()!.Share!.sendDefault({
       objectType: "text",
       text: data.text || data.title,
       link: {
@@ -234,124 +237,133 @@ const shareButtonClass =
 
   for (const root of shareRoots) {
     const button = root.querySelector<HTMLButtonElement>("[data-share-button]");
-    const label = button?.querySelector<HTMLElement>("[data-share-button-label]");
     const status = root.querySelector<HTMLElement>("[data-share-status]");
     const modal = root.querySelector<HTMLElement>("[data-share-modal]");
-    const closeButton = root.querySelector<HTMLButtonElement>("[data-share-close]");
     const copyButton = root.querySelector<HTMLButtonElement>("[data-share-copy]");
     const kakaoButton = root.querySelector<HTMLButtonElement>("[data-share-kakao]");
-    const qrToggleButton = root.querySelector<HTMLButtonElement>("[data-share-qr-toggle]");
-    const qrToggleLabel = root.querySelector<HTMLElement>(qrLabelSelector);
     const qrImage = root.querySelector<HTMLImageElement>("[data-share-qr]");
+    const qrWrap = root.querySelector<HTMLDivElement>("[data-share-qr-wrap]");
+    const qrLoading = root.querySelector<HTMLElement>("[data-share-qr-loading]");
+    const toast = root.querySelector<HTMLElement>("[data-share-toast]");
+    const toastText = root.querySelector<HTMLElement>("[data-share-toast-text]");
 
     if (
       !button ||
       !modal ||
-      !closeButton ||
       !copyButton ||
       !kakaoButton ||
-      !qrToggleButton ||
-      !qrToggleLabel ||
-      !qrImage
+      !qrImage ||
+      !qrWrap ||
+      !qrLoading
     ) {
       continue;
     }
 
-    const previousLabel = label?.textContent ?? openLabel;
-    let qrVisible = false;
+    const shareButton = button;
+    const shareModal = modal;
+    const shareCopyButton = copyButton;
+    const shareKakaoButton = kakaoButton;
+    const shareQrImage = qrImage;
+    const shareQrWrap = qrWrap;
+    const shareQrLoading = qrLoading;
+
     let onEscapeKey: ((event: KeyboardEvent) => void) | null = null;
 
+    function setQrLoading(isLoading: boolean, message = "QR 생성 중"): void {
+      shareQrLoading.textContent = message;
+      shareQrLoading.classList.toggle("hidden", !isLoading);
+      shareQrImage.classList.toggle("opacity-0", isLoading);
+    }
+
     function showModal(): void {
-      const shareData = buildShareData(button, status);
-      modal.classList.remove("hidden");
+      const shareData = buildShareData(shareButton);
+      shareModal.classList.remove("hidden");
       setStatusMessage(status, `${shareData.title}을(를) 공유합니다.`);
-      closeButton.focus();
+      shareKakaoButton.focus();
       onEscapeKey = (event): void => {
         if (event.key === "Escape") {
           hideModal();
         }
       };
       document.addEventListener("keydown", onEscapeKey);
-      if (qrVisible) {
-        qrImage.src = generateQRCodeImageSrc(shareData.url, 220);
-      }
+      shareQrImage.removeAttribute("src");
+      setQrLoading(true);
+      shareQrImage.src = generateQRCodeImageSrc(shareData.url, 136);
+      shareQrWrap.classList.remove("hidden");
     }
 
     function hideModal(): void {
-      modal.classList.add("hidden");
+      shareModal.classList.add("hidden");
       if (onEscapeKey) {
         document.removeEventListener("keydown", onEscapeKey);
         onEscapeKey = null;
       }
+      if (toastTimeoutId !== null) {
+        window.clearTimeout(toastTimeoutId);
+        toastTimeoutId = null;
+      }
+      shareQrImage.removeAttribute("src");
+      setQrLoading(true);
       setStatusMessage(status, "");
-    }
-
-    function updateQrVisibility(): void {
-      const shareData = buildShareData(button, status);
-      qrVisible = !qrVisible;
-      if (qrVisible) {
-        qrImage.src = generateQRCodeImageSrc(shareData.url, 220);
-        qrImage.classList.remove("hidden");
-        qrToggleLabel.textContent = qrHideLabel;
-      } else {
-        qrImage.classList.add("hidden");
-        qrImage.removeAttribute("src");
-        qrToggleLabel.textContent = qrShowLabel;
+      if (toast) {
+        toast.classList.add("hidden");
       }
     }
 
-    button.addEventListener("click", () => {
+    shareQrImage.addEventListener("load", () => {
+      setQrLoading(false);
+    });
+
+    shareQrImage.addEventListener("error", () => {
+      setQrLoading(true, "QR을 불러오지 못했습니다");
+      setStatusMessage(status, "QR 코드를 불러오지 못했습니다.");
+    });
+
+    shareButton.addEventListener("click", () => {
       if (status) {
         status.textContent = "";
       }
       showModal();
     });
 
-    closeButton.addEventListener("click", hideModal);
-    modal.addEventListener("click", (event) => {
-      if (event.target === modal) {
+    shareModal.addEventListener("click", (event) => {
+      if (event.target === shareModal) {
         hideModal();
       }
     });
 
-    copyButton.addEventListener("click", async () => {
-      const shareData = buildShareData(button, status);
+    shareCopyButton.addEventListener("click", async () => {
+      const shareData = buildShareData(shareButton);
       try {
         await copyShareUrl(shareData.url, status);
-        if (label) {
-          label.textContent = "복사됨";
-        }
-        window.setTimeout(() => {
-          if (label) {
-            label.textContent = previousLabel;
-          }
-        }, 1600);
+        setStatusMessage(status, "링크가 클립보드에 복사되었습니다.");
+        showToast(toast, toastText, "링크가 클립보드에 복사되었습니다.");
       } catch (error) {
         if (error instanceof DOMException && error.name === "NotAllowedError") {
           setStatusMessage(status, "클립보드 접근이 거부되었습니다.");
+          showToast(toast, toastText, "클립보드 접근이 거부되었습니다.");
           return;
         }
         setStatusMessage(status, "클립보드 복사에 실패했습니다.");
+        showToast(toast, toastText, "클립보드 복사에 실패했습니다.");
       }
     });
 
-    kakaoButton.addEventListener("click", () => {
+    shareKakaoButton.addEventListener("click", () => {
       try {
-        const shareData = buildShareData(button, status);
+        const shareData = buildShareData(shareButton);
         shareWithKakao(shareData, status);
+        showToast(toast, toastText, "카카오톡 공유 화면을 열었습니다.");
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "카카오톡 공유를 시작하지 못했습니다.";
         setStatusMessage(status, message);
+        showToast(toast, toastText, message);
       }
     });
 
-    qrToggleButton.addEventListener("click", () => {
-      updateQrVisibility();
-    });
-
     document.addEventListener("click", (event) => {
-      if (!modal.classList.contains("hidden") && !root.contains(event.target as Node)) {
+      if (!shareModal.classList.contains("hidden") && !root.contains(event.target as Node)) {
         hideModal();
       }
     });
