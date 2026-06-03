@@ -18,7 +18,7 @@ const visibleHeadings = headings.filter((heading) => {
       aria-label="본문 목차"
       data-content-toc
     >
-      <p class="m-0 text-label-3 uppercase text-ds-primary">Contents</p>
+      <p class="m-0 text-subtitle-4-semibold uppercase text-ds-primary">Contents</p>
       <ol class="m-0 grid list-none gap-2 p-0">
         {visibleHeadings.map((heading) => (
           <li
@@ -43,7 +43,7 @@ const visibleHeadings = headings.filter((heading) => {
 }
 
 <script>
-  import { selectActiveHeadingId, type TocHeadingCandidate } from "@/lib/toc";
+  import { getTocLinkVisualState, selectActiveHeadingId, type TocHeadingCandidate } from "@/lib/toc";
 
   for (const toc of document.querySelectorAll<HTMLElement>("[data-content-toc]")) {
     const links = Array.from(toc.querySelectorAll<HTMLAnchorElement>("[data-heading-id]"));
@@ -52,13 +52,19 @@ const visibleHeadings = headings.filter((heading) => {
     function setActive(id: string | undefined): void {
       for (const link of links) {
         const isActive = link.dataset.headingId === id;
-        if (isActive) {
-          link.setAttribute("aria-current", "true");
+        const visualState = getTocLinkVisualState(isActive);
+
+        if (visualState.ariaCurrent) {
+          link.setAttribute("aria-current", visualState.ariaCurrent);
         } else {
           link.removeAttribute("aria-current");
         }
-        link.classList.toggle("text-ds-primary-strong", isActive);
-        link.classList.toggle("font-semibold", isActive);
+        for (const className of visualState.add) {
+          link.classList.add(className);
+        }
+        for (const className of visualState.remove) {
+          link.classList.remove(className);
+        }
       }
     }
 

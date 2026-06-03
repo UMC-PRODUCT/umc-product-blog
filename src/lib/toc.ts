@@ -4,6 +4,30 @@ export type TocHeadingCandidate = {
   isIntersecting: boolean;
 };
 
+export type TocLinkVisualState = {
+  ariaCurrent?: 'true';
+  add: readonly string[];
+  remove: readonly string[];
+};
+
+const activeTocLinkClasses = ['text-ds-primary-strong', 'font-semibold'] as const;
+const inactiveTocLinkClasses = ['text-ds-text-muted'] as const;
+
+export function getTocLinkVisualState(isActive: boolean): TocLinkVisualState {
+  if (isActive) {
+    return {
+      ariaCurrent: 'true',
+      add: activeTocLinkClasses,
+      remove: inactiveTocLinkClasses,
+    };
+  }
+
+  return {
+    add: inactiveTocLinkClasses,
+    remove: activeTocLinkClasses,
+  };
+}
+
 export function selectActiveHeadingId(
   candidates: readonly TocHeadingCandidate[],
 ): string | undefined {
