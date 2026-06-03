@@ -38,9 +38,9 @@ const {
 const dataAttributes = dataAttribute ? { [dataAttribute]: "" } : {};
 
 const sizeClassBySize: Record<ActionModalSize, string> = {
-  small: "max-w-[360px]",
-  medium: "max-w-[480px]",
-  large: "max-w-[720px]",
+  small: "max-w-[320px]",
+  medium: "max-w-[360px]",
+  large: "max-w-[480px]",
 };
 ---
 
@@ -49,7 +49,7 @@ const sizeClassBySize: Record<ActionModalSize, string> = {
   {...dataAttributes}
 >
   <section
-    class:list={["w-full rounded-[24px] bg-white px-6 pt-3 pb-5", sizeClassBySize[size]]}
+    class:list={["w-full rounded-[24px] bg-white px-6 pt-7 pb-5", sizeClassBySize[size]]}
     role="dialog"
     aria-modal="true"
     aria-labelledby="action-modal-title"

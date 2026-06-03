@@ -35,12 +35,12 @@ import AuthRegisterNotice from "./AuthRegisterNotice.astro";
     }
     const dialog = root.querySelector<HTMLElement>("[data-login-modal-dialog]");
     dialog?.classList.toggle("max-w-[420px]", view !== "register");
-    dialog?.classList.toggle("max-w-[480px]", view === "register");
+    dialog?.classList.toggle("max-w-[440px]", view === "register");
     dialog?.classList.toggle("rounded-[24px]", view === "register");
     dialog?.classList.toggle("border", view !== "register");
     dialog?.classList.toggle("px-6", view === "register");
     dialog?.classList.toggle("px-10", view !== "register");
-    dialog?.classList.toggle("py-5", view === "register");
+    dialog?.classList.toggle("py-6", view === "register");
     dialog?.classList.toggle("py-10", view !== "register");
   }
 
