@@ -52,3 +52,28 @@ describe('CommentsPanel guest nickname input', () => {
     );
   });
 });
+
+describe('CommentsPanel server comment contract rendering', () => {
+  it('handles deleted comments, permissions, and cursor pagination controls', () => {
+    expect(commentsPanelSource).toContain('isDeletedComment(comment)');
+    expect(commentsPanelSource).toContain('if (!isDeleted) {');
+    expect(commentsPanelSource).toContain('if (!isReply && !isDeleted && comment.canReply)');
+    expect(commentsPanelSource).toContain('if (comment.canEdit)');
+    expect(commentsPanelSource).toContain('if (comment.canDelete)');
+    expect(commentsPanelSource).toContain('data-comments-load-more');
+    expect(commentsPanelSource).toContain('nextCursor');
+  });
+
+  it('wires edit and delete comment flows to API helpers', () => {
+    expect(commentsPanelSource).toContain('updateComment(');
+    expect(commentsPanelSource).toContain('deleteComment(');
+    expect(commentsPanelSource).toContain('댓글을 삭제할까요?');
+    expect(commentsPanelSource).toContain('댓글은 1000자 이하로 입력해 주세요.');
+  });
+
+  it('shows confirmation modal for comment edit/delete success', () => {
+    expect(commentsPanelSource).toContain('data-comment-result-modal');
+    expect(commentsPanelSource).toContain('openResultModal(root, "댓글 수정 완료"');
+    expect(commentsPanelSource).toContain('openResultModal(root, "댓글 삭제 완료"');
+  });
+});
